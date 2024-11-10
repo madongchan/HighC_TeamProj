@@ -71,6 +71,13 @@ void display_status_area(Player* player) {
 void battle(Player* player, Enemy* enemy) {
     printf("전투 시작! %s와(과) 싸웁니다!\n", enemy->name);
 
+    // 전투 시뮬레이션 (다형성을 이용한 공격)
+    player.base.attack_func(&player, &enemy);  // 플레이어가 적을 공격
+    printf("적 남은 체력: %d\n", enemy.base.health);
+
+    enemy.base.attack_func(&enemy, &player);   // 적이 플레이어를 공격
+    printf("플레이어 남은 체력: %d\n", player.base.health);
+
     while (player->base.health > 0 && enemy->base.health > 0) {
         // 플레이어가 적을 공격
         int damage_to_enemy = player->base.attack;
