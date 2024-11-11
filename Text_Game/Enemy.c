@@ -2,8 +2,8 @@
 #include <stdio.h>
 
 void enemy_attack(void* self, void* target) {
-    printf("¿˚¿Ã ∞¯∞›«’¥œ¥Ÿ!\n");
-    character_attack(self, target);  // ±‚∫ª ∞¯∞› ∑Œ¡˜ »£√‚
+    printf("Ï†ÅÏù¥ Í≥µÍ≤©Ìï©ÎãàÎã§!\n");
+    character_attack(self, target);  // Í∏∞Î≥∏ Í≥µÍ≤© Î°úÏßÅ Ìò∏Ï∂ú
 }
 
 void init_enemy(Enemy* enemy) {
@@ -11,8 +11,8 @@ void init_enemy(Enemy* enemy) {
     enemy->base.attack = 15;
     enemy->base.defense = 5;
 
-    // ¿˚¿« ∞¯∞› «‘ºˆ º≥¡§ (¥Ÿ«¸º∫ ±∏«ˆ)
+    // Ï†ÅÏùò Í≥µÍ≤© Ìï®Ïàò ÏÑ§Ï†ï (Îã§ÌòïÏÑ± Íµ¨ÌòÑ)
     enemy->base.attack_func = enemy_attack;
 
-    snprintf(enemy->name, sizeof(enemy->name), "Goblin");  // ¿˚ ¿Ã∏ß º≥¡§
+    snprintf(enemy->name, sizeof(enemy->name), "Test Enemy");  // Ï†Å Ïù¥Î¶Ñ ÏÑ§Ï†ï
 }

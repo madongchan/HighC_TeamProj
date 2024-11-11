@@ -2,11 +2,11 @@
 #include "Character.h"
 
 typedef struct {
-    Character base;  // Character ±¸Á¶Ã¼¸¦ »ó¼Ó¹ŞÀ½ (Ã¹ ¹øÂ° ¸â¹ö·Î Æ÷ÇÔ)
-    char name[30];   // Àû¸¸ÀÇ Æ¯¼öÇÑ ¼Ó¼º (ÀÌ¸§)
+    Character base;  // Character êµ¬ì¡°ì²´ë¥¼ ìƒì†ë°›ìŒ (ì²« ë²ˆì§¸ ë©¤ë²„ë¡œ í¬í•¨)
+    char name[30];   // ì ë§Œì˜ íŠ¹ìˆ˜í•œ ì†ì„± (ì´ë¦„)
 } Enemy;
 
-// Àû Àü¿ë ÇÔ¼ö ¼±¾ğ
+// ì  ì „ìš© í•¨ìˆ˜ ì„ ì–¸
 void enemy_attack(void* self, void* target);
 void init_enemy(Enemy* enemy);
 

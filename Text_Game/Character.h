@@ -4,10 +4,10 @@ typedef struct {
     int attack;
     int defense;
 
-    // Çàµ¿À» À§ÇÑ ÇÔ¼ö Æ÷ÀÎÅÍ (´ÙÇü¼ºÀ» À§ÇÑ ¼³Á¤)
+    // í–‰ë™ì„ ìœ„í•œ í•¨ìˆ˜ í¬ì¸í„° (ë‹¤í˜•ì„±ì„ ìœ„í•œ ì„¤ì •)
     void (*attack_func)(void* self, void* target);
 } Character;
 
-// °øÅëµÈ Çàµ¿ ÇÔ¼ö ¼±¾ğ
+// ê³µí†µëœ í–‰ë™ í•¨ìˆ˜ ì„ ì–¸
 void character_attack(void* self, void* target);
 

@@ -9,16 +9,12 @@
 #include "Player.h"
 #include "Enemy.h"
 
-// È­¸éÀ» Áö¿ì´Â ÇÔ¼ö
+// í™”ë©´ì„ ì§€ìš°ëŠ” í•¨ìˆ˜
 void clear_screen() {
-#ifdef _WIN32
-    system("cls");  // Windows È¯°æ¿¡¼­ È­¸é Áö¿ì±â
-#else
-    system("clear"); // Unix/Linux È¯°æ¿¡¼­ È­¸é Áö¿ì±â
-#endif
+    system("cls");
 }
 
-// Ä¿¼­¸¦ ¿øÇÏ´Â À§Ä¡·Î ÀÌµ¿½ÃÅ°´Â ÇÔ¼ö (Windows Àü¿ë)
+// ì»¤ì„œë¥¼ ì›í•˜ëŠ” ìœ„ì¹˜ë¡œ ì´ë™ì‹œí‚¤ëŠ” í•¨ìˆ˜ (Windows ì „ìš©)
 void set_cursor_position(int x, int y) {
     COORD coord;
     coord.X = x;
@@ -26,7 +22,7 @@ void set_cursor_position(int x, int y) {
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 }
 
-// ÄÜ¼Ö Ã¢ Å©±â¸¦ °¡Á®¿À´Â ÇÔ¼ö (Windows Àü¿ë)
+// ì½˜ì†” ì°½ í¬ê¸°ë¥¼ ê°€ì ¸ì˜¤ëŠ” í•¨ìˆ˜ (Windows ì „ìš©)
 COORD get_console_size() {
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
@@ -36,104 +32,105 @@ COORD get_console_size() {
     return size;
 }
 
-// »ó´Ü °ÔÀÓ ·ÎÁ÷ °ø°£ Ãâ·Â ÇÔ¼ö
+// ìƒë‹¨ ê²Œì„ ë¡œì§ ê³µê°„ ì¶œë ¥ í•¨ìˆ˜
 void display_game_area(const char* message) {
-    // Ä¿¼­¸¦ »ó´ÜÀ¸·Î ÀÌµ¿ÇÏ¿© °ÔÀÓ ·ÎÁ÷ ¸Ş½ÃÁö Ãâ·Â
+    // ì»¤ì„œë¥¼ ìƒë‹¨ìœ¼ë¡œ ì´ë™í•˜ì—¬ ê²Œì„ ë¡œì§ ë©”ì‹œì§€ ì¶œë ¥
     set_cursor_position(0, 0);
 
-    printf("===== °ÔÀÓ ·ÎÁ÷ °ø°£ =====\n");
+    printf("===== ê²Œì„ ë¡œì§ ê³µê°„ =====\n");
     printf("%s\n", message);
     printf("=========================\n\n");
 }
 
-// ÇÏ´Ü ÇÃ·¹ÀÌ¾î ½ºÅÈ ¹× ¾ÆÀÌÅÛ °ø°£ Ãâ·Â ÇÔ¼ö
+// í•˜ë‹¨ í”Œë ˆì´ì–´ ìŠ¤íƒ¯ ë° ì•„ì´í…œ ê³µê°„ ì¶œë ¥ í•¨ìˆ˜
 void display_status_area(Player* player) {
     COORD console_size = get_console_size();
 
-    // ÇÏ´ÜÀ¸·Î Ä¿¼­¸¦ ÀÌµ¿ÇÏ¿© ÇÃ·¹ÀÌ¾î »óÅÂ¿Í ¾ÆÀÌÅÛ Ãâ·Â
-    set_cursor_position(0, console_size.Y - 6);  // ¸Ç ¾Æ·¡¿¡¼­ 6ÁÙ À§·Î Ä¿¼­ ÀÌµ¿ (½ºÅÈ ¹× ¾ÆÀÌÅÛ °ø°£ È®º¸)
+    // í•˜ë‹¨ìœ¼ë¡œ ì»¤ì„œë¥¼ ì´ë™í•˜ì—¬ í”Œë ˆì´ì–´ ìƒíƒœì™€ ì•„ì´í…œ ì¶œë ¥
+    set_cursor_position(0, console_size.Y - 6);  // ë§¨ ì•„ë˜ì—ì„œ 6ì¤„ ìœ„ë¡œ ì»¤ì„œ ì´ë™ (ìŠ¤íƒ¯ ë° ì•„ì´í…œ ê³µê°„ í™•ë³´)
 
-    printf("\n===== ÇÃ·¹ÀÌ¾î »óÅÂ =====\n");
-    printf("Ã¼·Â: %d\n", player->base.health);
-    printf("°ø°İ·Â: %d\n", player->base.attack);
-    printf("¹æ¾î·Â: %d\n", player->base.defense);
+    printf("\n===== í”Œë ˆì´ì–´ ìƒíƒœ =====\n");
+    printf("ì²´ë ¥: %d\n", player->base.health);
+    printf("ê³µê²©ë ¥: %d\n", player->base.attack);
+    printf("ë°©ì–´ë ¥: %d\n", player->base.defense);
 
-    printf("\n===== ¼ÒÁö ¾ÆÀÌÅÛ =====\n");
+    printf("\n===== ì†Œì§€ ì•„ì´í…œ =====\n");
     for (int i = 0; i < player->item_count; ++i) {
         printf("%s\n", player->items[i]);
     }
 
-    // ¸¶Áö¸· ÁÙ±îÁö Ã¤¿ö¼­ ÇÏ´Ü °íÁ¤ À¯Áö
+    // ë§ˆì§€ë§‰ ì¤„ê¹Œì§€ ì±„ì›Œì„œ í•˜ë‹¨ ê³ ì • ìœ ì§€
     printf("=========================\n");
 }
 
 
 void battle(Player* player, Enemy* enemy) {
-    printf("ÀüÅõ ½ÃÀÛ! %s¿Í(°ú) ½Î¿ó´Ï´Ù!\n", enemy->name);
+    printf("ì „íˆ¬ ì‹œì‘! %sì™€(ê³¼) ì‹¸ì›ë‹ˆë‹¤!\n", enemy->name);
 
-    // ÀüÅõ ½Ã¹Ä·¹ÀÌ¼Ç (´ÙÇü¼ºÀ» ÀÌ¿ëÇÑ °ø°İ)
-    player.base.attack_func(&player, &enemy);  // ÇÃ·¹ÀÌ¾î°¡ ÀûÀ» °ø°İ
-    printf("Àû ³²Àº Ã¼·Â: %d\n", enemy.base.health);
+    // ì „íˆ¬ ì‹œë®¬ë ˆì´ì…˜ (ë‹¤í˜•ì„±ì„ ì´ìš©í•œ ê³µê²©) //
+    player->base.attack_func(&player, &enemy);  // í”Œë ˆì´ì–´ê°€ ì ì„ ê³µê²©
+    printf("ì  ë‚¨ì€ ì²´ë ¥: %d\n", enemy->base.health);
 
-    enemy.base.attack_func(&enemy, &player);   // ÀûÀÌ ÇÃ·¹ÀÌ¾î¸¦ °ø°İ
-    printf("ÇÃ·¹ÀÌ¾î ³²Àº Ã¼·Â: %d\n", player.base.health);
-
+    printf("ì  ë‚¨ì€ ì²´ë ¥: %d\n", enemy->base.health);
+    enemy->base.attack_func(&enemy, &player);   // ì ì´ í”Œë ˆì´ì–´ë¥¼ ê³µê²©
+    printf("í”Œë ˆì´ì–´ ë‚¨ì€ ì²´ë ¥: %d\n", player->base.health);
+    /////////////////////////////////////////////////////////////
     while (player->base.health > 0 && enemy->base.health > 0) {
-        // ÇÃ·¹ÀÌ¾î°¡ ÀûÀ» °ø°İ
+        // í”Œë ˆì´ì–´ê°€ ì ì„ ê³µê²©
         int damage_to_enemy = player->base.attack;
         enemy->base.health -= damage_to_enemy;
-        printf("ÇÃ·¹ÀÌ¾î°¡ %s¿¡°Ô %d ÇÇÇØ¸¦ ÀÔÇû½À´Ï´Ù.\n", enemy->name, damage_to_enemy);
+        printf("í”Œë ˆì´ì–´ê°€ %sì—ê²Œ %d í”¼í•´ë¥¼ ì…í˜”ìŠµë‹ˆë‹¤.\n", enemy->name, damage_to_enemy);
 
         if (enemy->base.health <= 0) {
-            printf("%s¸¦ ¹°¸®ÃÆ½À´Ï´Ù!\n", enemy->name);
+            printf("%së¥¼ ë¬¼ë¦¬ì³¤ìŠµë‹ˆë‹¤!\n", enemy->name);
             break;
         }
 
-        // ÀûÀÌ ÇÃ·¹ÀÌ¾î¸¦ °ø°İ
+        // ì ì´ í”Œë ˆì´ì–´ë¥¼ ê³µê²©
         int damage_to_player = enemy->base.attack - (player->base.defense * 0.4);
-        if (damage_to_player < 0) damage_to_player = 0; // ¹æ¾î·ÂÀÌ ³ôÀ¸¸é ÇÇÇØ°¡ ¾øÀ» ¼öµµ ÀÖÀ½
+        if (damage_to_player < 0) damage_to_player = 0; // ë°©ì–´ë ¥ì´ ë†’ìœ¼ë©´ í”¼í•´ê°€ ì—†ì„ ìˆ˜ë„ ìˆìŒ
         player->base.health -= damage_to_player;
-        printf("%s°¡ ÇÃ·¹ÀÌ¾î¿¡°Ô %d ÇÇÇØ¸¦ ÀÔÇû½À´Ï´Ù.\n", enemy->name, damage_to_player);
+        printf("%sê°€ í”Œë ˆì´ì–´ì—ê²Œ %d í”¼í•´ë¥¼ ì…í˜”ìŠµë‹ˆë‹¤.\n", enemy->name, damage_to_player);
 
         if (player->base.health <= 0) {
-            printf("ÇÃ·¹ÀÌ¾î°¡ »ç¸ÁÇß½À´Ï´Ù...\n");
+            printf("í”Œë ˆì´ì–´ê°€ ì‚¬ë§í–ˆìŠµë‹ˆë‹¤...\n");
             break;
         }
     }
 }
 
 void use_item(Player* player, char* item_name) {
-    if (strcmp(item_name, "ÀÇ·á Å°Æ®") == 0) {
-        player->base.health += 10; // Ã¼·Â È¸º¹
-        printf("ÀÇ·á Å°Æ®¸¦ »ç¿ëÇÏ¿© Ã¼·ÂÀÌ È¸º¹µÇ¾ú½À´Ï´Ù! ÇöÀç Ã¼·Â: %d\n", player->base.health);
+    if (strcmp(item_name, "ì˜ë£Œ í‚¤íŠ¸") == 0) {
+        player->base.health += 10; // ì²´ë ¥ íšŒë³µ
+        printf("ì˜ë£Œ í‚¤íŠ¸ë¥¼ ì‚¬ìš©í•˜ì—¬ ì²´ë ¥ì´ íšŒë³µë˜ì—ˆìŠµë‹ˆë‹¤! í˜„ì¬ ì²´ë ¥: %d\n", player->base.health);
     }
-    else if (strcmp(item_name, "¿¡³ÊÁö ºí·¹ÀÌµå") == 0) {
-        player->base.attack += 5; // °ø°İ·Â Áõ°¡
-        printf("¿¡³ÊÁö ºí·¹ÀÌµå¸¦ »ç¿ëÇÏ¿© °ø°İ·ÂÀÌ Áõ°¡Çß½À´Ï´Ù! ÇöÀç °ø°İ·Â: %d\n", player->base.attack);
+    else if (strcmp(item_name, "ì—ë„ˆì§€ ë¸”ë ˆì´ë“œ") == 0) {
+        player->base.attack += 5; // ê³µê²©ë ¥ ì¦ê°€
+        printf("ì—ë„ˆì§€ ë¸”ë ˆì´ë“œë¥¼ ì‚¬ìš©í•˜ì—¬ ê³µê²©ë ¥ì´ ì¦ê°€í–ˆìŠµë‹ˆë‹¤! í˜„ì¬ ê³µê²©ë ¥: %d\n", player->base.attack);
     }
-    else if (strcmp(item_name, "°­È­ ½´Æ®") == 0) {
-        player->base.defense += 5; // ¹æ¾î·Â Áõ°¡
-        printf("°­È­ ½´Æ®¸¦ Âø¿ëÇÏ¿© ¹æ¾î·ÂÀÌ Áõ°¡Çß½À´Ï´Ù! ÇöÀç ¹æ¾î·Â: %d\n", player->base.defense);
+    else if (strcmp(item_name, "ê°•í™” ìŠˆíŠ¸") == 0) {
+        player->base.defense += 5; // ë°©ì–´ë ¥ ì¦ê°€
+        printf("ê°•í™” ìŠˆíŠ¸ë¥¼ ì°©ìš©í•˜ì—¬ ë°©ì–´ë ¥ì´ ì¦ê°€í–ˆìŠµë‹ˆë‹¤! í˜„ì¬ ë°©ì–´ë ¥: %d\n", player->base.defense);
     }
     else {
-        printf("¾Ë ¼ö ¾ø´Â ¾ÆÀÌÅÛÀÔ´Ï´Ù.\n");
+        printf("ì•Œ ìˆ˜ ì—†ëŠ” ì•„ì´í…œì…ë‹ˆë‹¤.\n");
     }
 }
 
 void random_event(Player* player) {
-    int event_type = rand() % 3; // ¼¼ °¡Áö ·£´ı ÀÌº¥Æ® Áß ÇÏ³ª ¹ß»ı
+    int event_type = rand() % 3; // ì„¸ ê°€ì§€ ëœë¤ ì´ë²¤íŠ¸ ì¤‘ í•˜ë‚˜ ë°œìƒ
 
     switch (event_type) {
     case 0:
-        printf("¿Ü°è ±¤¹°À» ¹ß°ßÇß½À´Ï´Ù! °ø°İ·ÂÀÌ Áõ°¡ÇÕ´Ï´Ù.\n");
+        printf("ì™¸ê³„ ê´‘ë¬¼ì„ ë°œê²¬í–ˆìŠµë‹ˆë‹¤! ê³µê²©ë ¥ì´ ì¦ê°€í•©ë‹ˆë‹¤.\n");
         player->base.attack += 2;
         break;
     case 1:
-        printf("ÆøÇ³ÀÌ ¹ß»ıÇß½À´Ï´Ù! Ã¼·ÂÀÌ °¨¼ÒÇÕ´Ï´Ù.\n");
+        printf("í­í’ì´ ë°œìƒí–ˆìŠµë‹ˆë‹¤! ì²´ë ¥ì´ ê°ì†Œí•©ë‹ˆë‹¤.\n");
         player->base.health -= 5;
         break;
     case 2:
-        printf("Ä£±ÙÇÑ ¿Ü°è »ı¸íÃ¼¿Í ¸¸³µ½À´Ï´Ù! Á¤º¸¸¦ ¾ò¾ú½À´Ï´Ù.\n");
+        printf("ì¹œê·¼í•œ ì™¸ê³„ ìƒëª…ì²´ì™€ ë§Œë‚¬ìŠµë‹ˆë‹¤! ì •ë³´ë¥¼ ì–»ì—ˆìŠµë‹ˆë‹¤.\n");
         break;
     }
 }
@@ -141,19 +138,19 @@ void random_event(Player* player) {
 void move_room(char direction) {
     switch (direction) {
     case 'N':
-        printf("ºÏÂÊÀ¸·Î ÀÌµ¿ÇÕ´Ï´Ù.\n");
+        printf("ë¶ìª½ìœ¼ë¡œ ì´ë™í•©ë‹ˆë‹¤.\n");
         break;
     case 'S':
-        printf("³²ÂÊÀ¸·Î ÀÌµ¿ÇÕ´Ï´Ù.\n");
+        printf("ë‚¨ìª½ìœ¼ë¡œ ì´ë™í•©ë‹ˆë‹¤.\n");
         break;
     case 'E':
-        printf("µ¿ÂÊÀ¸·Î ÀÌµ¿ÇÕ´Ï´Ù.\n");
+        printf("ë™ìª½ìœ¼ë¡œ ì´ë™í•©ë‹ˆë‹¤.\n");
         break;
     case 'W':
-        printf("¼­ÂÊÀ¸·Î ÀÌµ¿ÇÕ´Ï´Ù.\n");
+        printf("ì„œìª½ìœ¼ë¡œ ì´ë™í•©ë‹ˆë‹¤.\n");
         break;
     default:
-        printf("Àß¸øµÈ ¹æÇâÀÔ´Ï´Ù.\n");
+        printf("ì˜ëª»ëœ ë°©í–¥ì…ë‹ˆë‹¤.\n");
         break;
     }
 }
@@ -162,21 +159,21 @@ int main() {
     Player player;
     Enemy enemy;
 
-    // ÇÃ·¹ÀÌ¾î¿Í Àû ÃÊ±âÈ­
+    // í”Œë ˆì´ì–´ì™€ ì  ì´ˆê¸°í™”
     init_player(&player);
     init_enemy(&enemy);
 
     char command;
 
     while (player.base.health > 0) {
-        // È­¸éÀ» ¸ÕÀú Áö¿ì°í »ó´Ü °ÔÀÓ ·ÎÁ÷ °ø°£ ÃÊ±âÈ­ ¹× ¾È³» ¸Ş½ÃÁö Ãâ·Â
+        // í™”ë©´ì„ ë¨¼ì € ì§€ìš°ê³  ìƒë‹¨ ê²Œì„ ë¡œì§ ê³µê°„ ì´ˆê¸°í™” ë° ì•ˆë‚´ ë©”ì‹œì§€ ì¶œë ¥
         //clear_screen();
-        display_game_area("¸í·ÉÀ» ÀÔ·ÂÇÏ¼¼¿ä (N: ºÏÂÊ ÀÌµ¿, S: ³²ÂÊ ÀÌµ¿, E: µ¿ÂÊ ÀÌµ¿, W: ¼­ÂÊ ÀÌµ¿, B: ÀüÅõ ½ÃÀÛ, I: ¾ÆÀÌÅÛ »ç¿ë)");
+        display_game_area("ëª…ë ¹ì„ ì…ë ¥í•˜ì„¸ìš” (N: ë¶ìª½ ì´ë™, S: ë‚¨ìª½ ì´ë™, E: ë™ìª½ ì´ë™, W: ì„œìª½ ì´ë™, B: ì „íˆ¬ ì‹œì‘, I: ì•„ì´í…œ ì‚¬ìš©)");
 		scanf("%c", &command);
-        // ÇÏ´Ü ÇÃ·¹ÀÌ¾î »óÅÂ ¹× ¾ÆÀÌÅÛ Á¤º¸ Ãâ·Â (Ç×»ó ÇÏ´Ü¿¡ °íÁ¤)
+        // í•˜ë‹¨ í”Œë ˆì´ì–´ ìƒíƒœ ë° ì•„ì´í…œ ì •ë³´ ì¶œë ¥ (í•­ìƒ í•˜ë‹¨ì— ê³ ì •)
         display_status_area(&player);
 
-        // ¸í·É ÀÔ·Â ¹Ş±â
+        // ëª…ë ¹ ì…ë ¥ ë°›ê¸°
         set_cursor_position(0, get_console_size().Y - 1);
         
 
@@ -185,32 +182,32 @@ int main() {
         case 's':
         case 'e':
         case 'w':
-            display_game_area("¹æÇâÀ¸·Î ÀÌµ¿ Áß...");
-            random_event(&player); // ÀÌµ¿ Áß ·£´ı ÀÌº¥Æ® ¹ß»ı °¡´É
+            display_game_area("ë°©í–¥ìœ¼ë¡œ ì´ë™ ì¤‘...");
+            random_event(&player); // ì´ë™ ì¤‘ ëœë¤ ì´ë²¤íŠ¸ ë°œìƒ ê°€ëŠ¥
             break;
 
         case 'B':
-            display_game_area("ÇÁ·¹µ¥ÅÍ¿Í ÀüÅõ Áß...");
-            battle(&player, &enemy); // ÇÁ·¹µ¥ÅÍ¿Í ÀüÅõ
+            display_game_area("í”„ë ˆë°í„°ì™€ ì „íˆ¬ ì¤‘...");
+            battle(&player, &enemy); // í”„ë ˆë°í„°ì™€ ì „íˆ¬
             break;
 
         case 'I':
-            use_item(&player, "ÀÇ·á Å°Æ®"); // ¿¹½Ã·Î ÀÇ·á Å°Æ® »ç¿ë
+            use_item(&player, "ì˜ë£Œ í‚¤íŠ¸"); // ì˜ˆì‹œë¡œ ì˜ë£Œ í‚¤íŠ¸ ì‚¬ìš©
             break;
 
         default:
-            display_game_area("Àß¸øµÈ ¸í·ÉÀÔ´Ï´Ù.");
+            display_game_area("ì˜ëª»ëœ ëª…ë ¹ì…ë‹ˆë‹¤.");
             break;
         }
 
         if (player.base.health <= 0) {
-            display_game_area("°ÔÀÓ ¿À¹ö!");
+            display_game_area("ê²Œì„ ì˜¤ë²„!");
             break;
         }
 
-        // ¸í·É ½ÇÇà ÈÄ ´Ù½Ã »ó´Ü°ú ÇÏ´Ü °»½Å
+        // ëª…ë ¹ ì‹¤í–‰ í›„ ë‹¤ì‹œ ìƒë‹¨ê³¼ í•˜ë‹¨ ê°±ì‹ 
         //clear_screen();
-        display_game_area("´ÙÀ½ ¸í·ÉÀ» ±â´Ù¸³´Ï´Ù...");
+        display_game_area("ë‹¤ìŒ ëª…ë ¹ì„ ê¸°ë‹¤ë¦½ë‹ˆë‹¤...");
         display_status_area(&player);
     }
 

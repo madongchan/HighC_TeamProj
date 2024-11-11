@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 int character_attack(void* self, void* target) {
-    // ±âº» °ø°İ ·ÎÁ÷ (ÀÚ½Ä¿¡¼­ ÀçÁ¤ÀÇ °¡´É)
+    // ê¸°ë³¸ ê³µê²© ë¡œì§ (ìì‹ì—ì„œ ì¬ì •ì˜ ê°€ëŠ¥)
     Character* attacker = (Character*)self;
     Character* defender = (Character*)target;
 

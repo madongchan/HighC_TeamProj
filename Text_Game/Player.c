@@ -2,8 +2,8 @@
 #include <stdio.h>
 
 void player_attack(void* self, void* target) {
-    printf("ÇÃ·¹ÀÌ¾î°¡ °ø°İÇÕ´Ï´Ù!\n");
-    character_attack(self, target);  // ±âº» °ø°İ ·ÎÁ÷ È£Ãâ
+    printf("í”Œë ˆì´ì–´ê°€ ê³µê²©í•©ë‹ˆë‹¤!\n");
+    character_attack(self, target);  // ê¸°ë³¸ ê³µê²© ë¡œì§ í˜¸ì¶œ
 }
 
 void init_player(Player* player) {
@@ -11,8 +11,8 @@ void init_player(Player* player) {
     player->base.attack = 20;
     player->base.defense = 10;
 
-    // ÇÃ·¹ÀÌ¾îÀÇ °ø°İ ÇÔ¼ö ¼³Á¤ (´ÙÇü¼º ±¸Çö)
+    // í”Œë ˆì´ì–´ì˜ ê³µê²© í•¨ìˆ˜ ì„¤ì • (ë‹¤í˜•ì„± êµ¬í˜„)
     player->base.attack_func = player_attack;
 
-    player->item_count = 0;  // ¾ÆÀÌÅÛ ÃÊ±âÈ­
+    player->item_count = 0;  // ì•„ì´í…œ ì´ˆê¸°í™”
 }

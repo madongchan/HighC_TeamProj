@@ -2,11 +2,11 @@
 #include "Character.h"
 
 typedef struct {
-    Character base;  // Character ±¸Á¶Ã¼¸¦ »ó¼Ó¹ŞÀ½ (Ã¹ ¹øÂ° ¸â¹ö·Î Æ÷ÇÔ)
-    char items[10][30];  // ÇÃ·¹ÀÌ¾î¸¸ÀÇ Æ¯¼öÇÑ ¼Ó¼º (¾ÆÀÌÅÛ ¸ñ·Ï)
+    Character base;  // Character êµ¬ì¡°ì²´ë¥¼ ìƒì†ë°›ìŒ (ì²« ë²ˆì§¸ ë©¤ë²„ë¡œ í¬í•¨)
+    char items[10][30];  // í”Œë ˆì´ì–´ë§Œì˜ íŠ¹ìˆ˜í•œ ì†ì„± (ì•„ì´í…œ ëª©ë¡)
     int item_count;
 } Player;
 
-// ÇÃ·¹ÀÌ¾î Àü¿ë ÇÔ¼ö ¼±¾ğ
+// í”Œë ˆì´ì–´ ì „ìš© í•¨ìˆ˜ ì„ ì–¸
 void player_attack(void* self, void* target);
 void init_player(Player* player);
