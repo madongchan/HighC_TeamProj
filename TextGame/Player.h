@@ -13,6 +13,7 @@ void player_attack(void* self, void* target) {
     character_attack(self, target);  // 기본 공격 로직 호출
 }
 
+// 스택 공간에 플레이어 객체를 생성하고 초기화하는 함수
 void init_player(Player* player) {
     player->base.health = 100;
     player->base.attack = 20;
@@ -26,9 +27,10 @@ void init_player(Player* player) {
     player->item_count = 0;  // 아이템 초기화
 }
 
+// 힙 공간에 플레이어 객체를 생성하고 초기화하는 함수
 Player* createPlayer() {
     Player* player = malloc(sizeof(Player));
-    player->base.type = PLAYER;
+    (*player).base.type = PLAYER;
     player->base.health = 100;
     player->base.attack = 20;
     player->base.defense = 10;

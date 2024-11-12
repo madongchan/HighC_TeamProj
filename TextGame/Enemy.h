@@ -22,7 +22,7 @@ void init_enemy(Enemy* enemy) {
     snprintf(enemy->name, sizeof(enemy->name), "Test Enemy");  // 적 이름 설정
 }
 
-Enemy* createEnemy() {
+Enemy* createEnemy(char* name) {
     Enemy* enemy = malloc(sizeof(Enemy));
     enemy->base.type = ENEMY;
     enemy->base.health = 50;
@@ -30,7 +30,7 @@ Enemy* createEnemy() {
     enemy->base.defense = 5;
     enemy->base.attack_func = enemy_attack;
 
-    snprintf(enemy->name, sizeof(enemy->name), "Test Enemy");
+    snprintf(enemy->name, sizeof(enemy->name), name);
 
     return enemy;
 }

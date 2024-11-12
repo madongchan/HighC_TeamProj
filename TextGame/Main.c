@@ -23,7 +23,7 @@ int message_count = 0;
 
 void display_game_area(const char* message) {
 	// 백 버퍼를 초기화하여 이전 프레임의 내용을 지움
-	clear_back_buffer();
+	//clear_back_buffer();
 
 	// 고정된 게임 영역 제목 출력 (한 번만 출력)
 	draw_to_back_buffer(0, 0, "===== 게임 로직 공간 =====");
@@ -77,6 +77,7 @@ void battle(Player* player, Enemy* enemy) {
 			break;
 		}
 	}
+	free(enemy);
 }
 
 void use_item(Player* player, char* item_name) {
@@ -98,7 +99,7 @@ void use_item(Player* player, char* item_name) {
 }
 
 void random_event(Player* player) {
-	int event_type = rand() % 4; // 네 가지 랜덤 이벤트 중 하나 발생
+	int event_type = rand() % 5; // 네 가지 랜덤 이벤트 중 하나 발생
 	char event_message[100];     // 랜덤 이벤트 메시지를 저장할 변수
 
 	switch (event_type) {
@@ -122,6 +123,9 @@ void random_event(Player* player) {
 		else {
 			snprintf(event_message, sizeof(event_message), "더 이상 아이템을 획득할 수 없습니다.");
 		}
+		break;
+	case 4:
+		battle(player, createEnemy("프레데터"));
 		break;
 	default:
 		snprintf(event_message, sizeof(event_message), "아무 일도 일어나지 않았습니다.");
@@ -156,9 +160,9 @@ int main() {
 	SetConsoleOutputCP(CP_UTF8);
 	SetConsoleCP(CP_UTF8);
 	// 플레이어 생성
-	Player* player = createPlayer(&player);
+	Player* player = createPlayer();
 
-	const int FPS = 33;
+	const int FPS = 33;			 // 초당 프레임 수 (30fps)
 	const int frameDelay = 1000 / FPS;  // 각 프레임당 대기 시간 (밀리초)
 
 	init_console();              // 콘솔 초기화
