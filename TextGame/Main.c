@@ -12,6 +12,7 @@
 #include "Utils.h"
 #include "Player.h"
 #include "Enemy.h"
+#include "Canvas.h"
 
 #define MAX_MESSAGES 10          // 메시지 저장할 최대 개수
 #define MESSAGE_LENGTH 100       // 각 메시지의 최대 길이
@@ -21,43 +22,42 @@ char messages[MAX_MESSAGES][MESSAGE_LENGTH];
 int message_count = 0;
 
 void display_game_area(const char* message) {
-	// 메시지가 가득 찬 경우 가장 오래된 메시지 제거
+	// 백 버퍼를 초기화하여 이전 프레임의 내용을 지움
+	clear_back_buffer();
+
+	// 고정된 게임 영역 제목 출력 (한 번만 출력)
+	draw_to_back_buffer(0, 0, "===== 게임 로직 공간 =====");
+
+	// 새로운 메시지 추가
 	if (message_count >= MAX_MESSAGES) {
+		// 메시지가 가득 찬 경우 가장 오래된 메시지 제거
 		for (int i = 1; i < MAX_MESSAGES; i++) {
 			strcpy(messages[i - 1], messages[i]);
 		}
 		message_count = MAX_MESSAGES - 1;
 	}
 
-	// 새로운 메시지 추가
 	strncpy(messages[message_count], message, MESSAGE_LENGTH - 1);
 	messages[message_count][MESSAGE_LENGTH - 1] = '\0'; // 문자열 끝을 널 문자로 설정
 	message_count++;
 
-	// 화면 상단에 메시지 출력
-	set_cursor_position(0, 0);
-	printf("===== 게임 로직 공간 =====\n");
+	// 동적인 게임 메시지 출력
 	for (int i = 0; i < message_count; i++) {
-		printf("%s\n", messages[i]);
+		draw_to_back_buffer(0, i + 1, messages[i]);
 	}
-	printf("=========================\n\n");
 }
 
 // 하단 플레이어 스탯 및 아이템 공간 출력 함수
 void display_status_area(Player* player) {
 	COORD console_size = get_console_size();
-	set_cursor_position(0, console_size.Y - 6); // 맨 아래에서 6줄 위로 커서 이동 (스탯 및 아이템 공간 확보)
 
-	printf("\n===== 플레이어 상태 =====\n");
-	printf("체력: %d\n", player->base.health);
-	printf("공격력: %d\n", player->base.attack);
-	printf("방어력: %d\n", player->base.defense);
+	char status[100];
 
-	printf("\n===== 소지 아이템 =====\n");
-	for (int i = 0; i < player->item_count; ++i) {
-		printf("%s\n", player->items[i]);
-	}
-	printf("=========================\n");
+	snprintf(status, sizeof(status), "체력: %d | 공격력: %d | 방어력: %d",
+		player->base.health, player->base.attack, player->base.defense);
+
+	draw_to_back_buffer(0, console_size.Y - 6, "===== 플레이어 상태 =====");
+	draw_to_back_buffer(0, console_size.Y - 5, status);
 }
 
 
@@ -98,34 +98,38 @@ void use_item(Player* player, char* item_name) {
 }
 
 void random_event(Player* player) {
-	int event_type = rand() % 4; // 세 가지 랜덤 이벤트 중 하나 발생
+	int event_type = rand() % 4; // 네 가지 랜덤 이벤트 중 하나 발생
+	char event_message[100];     // 랜덤 이벤트 메시지를 저장할 변수
 
 	switch (event_type) {
 	case 0:
-		printf("외계 광물을 발견했습니다! 공격력이 증가합니다.\n");
+		snprintf(event_message, sizeof(event_message), "외계 광물을 발견했습니다! 공격력이 증가합니다.");
 		player->base.attack += 2;
 		break;
 	case 1:
-		printf("폭풍이 발생했습니다! 체력이 감소합니다.\n");
+		snprintf(event_message, sizeof(event_message), "폭풍이 발생했습니다! 체력이 감소합니다.");
 		player->base.health -= 5;
 		break;
 	case 2:
-		printf("친근한 외계 생명체와 만났습니다! 정보를 얻었습니다.\n");
+		snprintf(event_message, sizeof(event_message), "친근한 외계 생명체와 만났습니다! 정보를 얻었습니다.");
 		break;
 	case 3:
-		printf("아이템 상자를 발견했습니다! 아이템을 획득합니다.\n");
 		if (player->item_count < 10) {
+			snprintf(event_message, sizeof(event_message), "아이템 상자를 발견했습니다! '의료 키트'를 획득합니다.");
 			snprintf(player->items[player->item_count], sizeof(player->items[player->item_count]), "의료 키트");
 			player->item_count++;
 		}
 		else {
-			printf("더 이상 아이템을 획득할 수 없습니다.\n");
+			snprintf(event_message, sizeof(event_message), "더 이상 아이템을 획득할 수 없습니다.");
 		}
 		break;
 	default:
-		//battle(player, createEnemy());
+		snprintf(event_message, sizeof(event_message), "아무 일도 일어나지 않았습니다.");
 		break;
 	}
+
+	// 백 버퍼에 랜덤 이벤트 메시지 그리기
+	display_game_area(event_message);
 }
 
 void move_room(char direction) {
@@ -157,18 +161,17 @@ int main() {
 	const int FPS = 33;
 	const int frameDelay = 1000 / FPS;  // 각 프레임당 대기 시간 (밀리초)
 
-	char input = '\0';  // 사용자 입력 변수
+	init_console();              // 콘솔 초기화
 
 	while (player->base.health > 0) { // 플레이어 체력이 0 이상인 동안 반복
+		clear_back_buffer();      // 백 버퍼 초기화
 
-		clear_screen();
 		display_game_area("명령을 입력하세요 (N: 북쪽 이동, S: 남쪽 이동, E: 동쪽 이동, W: 서쪽 이동, B: 전투 시작, I: 아이템 사용)");
-		// 하단 플레이어 상태 및 아이템 정보 출력 (항상 하단에 고정)
-		display_status_area(player);
+		display_status_area(player); // 하단 플레이어 스탯 및 아이템 공간 출력
 
 		// 비블로킹 방식으로 입력 받기 (_kbhit() 사용)
 		if (_kbhit()) {  // 키보드 입력이 있는지 확인
-			input = toupper(_getch());  // 키 입력을 대문자로 받기
+			char input = toupper(_getch());  // 키 입력을 대문자로 받기
 			switch (input)
 			{
 			case 'N':
@@ -185,6 +188,7 @@ int main() {
 				break;
 			case 'Q': // 'q'를 누르면 게임 종료
 				display_game_area("게임 종료\n");
+				player->base.health = 0;
 				break;
 			default:
 				break;
@@ -197,6 +201,7 @@ int main() {
 			free(player);
 			break;
 		}
+		render();			// 백 버퍼 내용을 화면에 렌더링
 		Sleep(frameDelay); // 30fps로 고정
 	}
 
