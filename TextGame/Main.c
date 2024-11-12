@@ -53,8 +53,8 @@ void display_status_area(Player* player) {
 
 	char status[100];
 
-	snprintf(status, sizeof(status), "체력: %d | 공격력: %d | 방어력: %d",
-		player->base.health, player->base.attack, player->base.defense);
+	snprintf(status, sizeof(status), "체력: %d | 공격력: %d | 방어력: %d | 아이템: %s",
+		player->base.health, player->base.attack, player->base.defense, player->items[0]);
 
 	draw_to_back_buffer(0, console_size.Y - 6, "===== 플레이어 상태 =====");
 	draw_to_back_buffer(0, console_size.Y - 5, status);
@@ -195,6 +195,7 @@ int main() {
 				player->base.health = 0;
 				break;
 			default:
+				display_game_area("잘못된 입력입니다. 다시 입력해주세요");
 				break;
 			}
 			random_event(player); // 이동 중 랜덤 이벤트 발생 가능
