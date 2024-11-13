@@ -11,17 +11,6 @@ void enemy_attack(void* self, void* target) {
     character_attack(self, target);  // 기본 공격 로직 호출
 }
 
-void init_enemy(Enemy* enemy) {
-    enemy->base.health = 50;
-    enemy->base.attack = 15;
-    enemy->base.defense = 5;
-
-    // 적의 공격 함수 설정 (다형성 구현)
-    enemy->base.attack_func = enemy_attack;
-
-    snprintf(enemy->name, sizeof(enemy->name), "Test Enemy");  // 적 이름 설정
-}
-
 Enemy* createEnemy() {
     Enemy* enemy = malloc(sizeof(Enemy));
     enemy->base.type = ENEMY;

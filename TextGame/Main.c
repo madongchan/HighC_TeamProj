@@ -14,38 +14,53 @@
 #include "Enemy.h"
 #include "Canvas.h"
 
-#define MAX_MESSAGES 10          // 메시지 저장할 최대 개수
-#define MESSAGE_LENGTH 100       // 각 메시지의 최대 길이
+#define MAX_MESSAGES 10
+#define MESSAGE_LENGTH 100
 
-// 게임 로직 메시지 저장 공간
-char messages[MAX_MESSAGES][MESSAGE_LENGTH];
+// 메시지 구조체 정의
+typedef struct {
+	char content[MESSAGE_LENGTH];
+	bool is_visible;  // 표시 여부를 나타내는 플래그
+} Message;
+
+// 메시지 배열 및 메시지 개수
+Message messages[MAX_MESSAGES];
 int message_count = 0;
 
-void display_game_area(const char* message) {
-	// 백 버퍼를 초기화하여 이전 프레임의 내용을 지움
-	clear_back_buffer();
+bool is_updated = false;  // 상태 변경 플래그
 
-	// 고정된 게임 영역 제목 출력 (한 번만 출력)
-	draw_to_back_buffer(0, 0, "===== 게임 로직 공간 =====");
-
-	// 새로운 메시지 추가
+// 메시지 추가 함수
+void add_message(const char* text) {
 	if (message_count >= MAX_MESSAGES) {
-		// 메시지가 가득 찬 경우 가장 오래된 메시지 제거
+		// 가장 오래된 메시지를 삭제하고 메시지들을 앞으로 이동
 		for (int i = 1; i < MAX_MESSAGES; i++) {
-			strcpy(messages[i - 1], messages[i]);
+			messages[i - 1] = messages[i];
 		}
 		message_count = MAX_MESSAGES - 1;
 	}
 
-	strncpy(messages[message_count], message, MESSAGE_LENGTH - 1);
-	messages[message_count][MESSAGE_LENGTH - 1] = '\0'; // 문자열 끝을 널 문자로 설정
+	// 새 메시지를 추가하고 표시 상태를 true로 설정
+	strncpy(messages[message_count].content, text, MESSAGE_LENGTH - 1);
+	messages[message_count].content[MESSAGE_LENGTH - 1] = '\0';
+	messages[message_count].is_visible = true;  // 새 메시지를 표시하도록 설정
 	message_count++;
+}
 
-	// 동적인 게임 메시지 출력
+
+// 메시지를 출력하는 함수
+void display_game_area() {
+	clear_back_buffer();
+	draw_to_back_buffer(0, 0, "===== 게임 로직 공간 =====");
+	draw_to_back_buffer(0, 1, "명령을 입력하세요 (N: 북쪽 이동, S: 남쪽 이동, E: 동쪽 이동, W: 서쪽 이동, B: 전투 시작, I: 아이템 사용)");
+
 	for (int i = 0; i < message_count; i++) {
-		draw_to_back_buffer(0, i + 1, messages[i]);
+		if (messages[i].is_visible) {
+			draw_to_back_buffer(1, i + 2, messages[i].content);
+		}
 	}
 }
+
+
 
 // 하단 플레이어 스탯 및 아이템 공간 출력 함수
 void display_status_area(Player* player) {
@@ -135,19 +150,19 @@ void random_event(Player* player) {
 void move_room(char direction) {
 	switch (direction) {
 	case 'N':
-		display_game_area("북쪽 방향으로 이동 중...");
+		add_message("북쪽 방향으로 이동 중...");
 		break;
 	case 'S':
-		display_game_area("남쪽 방향으로 이동 중...");
+		add_message("남쪽 방향으로 이동 중...");
 		break;
 	case 'E':
-		display_game_area("동쪽 방향으로 이동 중...");
+		add_message("동쪽 방향으로 이동 중...");
 		break;
 	case 'W':
-		display_game_area("서쪽 방향으로 이동 중...");
+		add_message("서쪽 방향으로 이동 중...");
 		break;
 	default:
-		display_game_area("잘못된 방향입니다.");
+		add_message("잘못된 방향입니다.");
 		break;
 	}
 }
@@ -164,9 +179,9 @@ int main() {
 	init_console();              // 콘솔 초기화
 
 	while (player->base.health > 0) { // 플레이어 체력이 0 이상인 동안 반복
-		clear_back_buffer();      // 백 버퍼 초기화
+		clear_back_buffer();
 
-		display_game_area("명령을 입력하세요 (N: 북쪽 이동, S: 남쪽 이동, E: 동쪽 이동, W: 서쪽 이동, B: 전투 시작, I: 아이템 사용)");
+		display_game_area();  // 게임 로직 공간 출력
 		display_status_area(player); // 하단 플레이어 스탯 및 아이템 공간 출력
 
 		// 비블로킹 방식으로 입력 받기 (_kbhit() 사용)
@@ -187,13 +202,13 @@ int main() {
 				move_room('W');
 				break;
 			case 'Q': // 'q'를 누르면 게임 종료
-				display_game_area("게임 종료\n");
+				add_message("게임 종료\n");
 				player->base.health = 0;
 				break;
 			default:
 				break;
 			}
-			random_event(player); // 이동 중 랜덤 이벤트 발생 가능
+			//random_event(player); // 이동 중 랜덤 이벤트 발생 가능
 		}
 
 		if (player->base.health <= 0) {

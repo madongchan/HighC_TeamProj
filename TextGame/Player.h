@@ -13,19 +13,6 @@ void player_attack(void* self, void* target) {
     character_attack(self, target);  // 기본 공격 로직 호출
 }
 
-void init_player(Player* player) {
-    player->base.health = 100;
-    player->base.attack = 20;
-    player->base.defense = 10;
-
-    // 플레이어의 공격 함수 설정 (다형성 구현)
-    player->base.attack_func = player_attack;
-
-    player->x = 0;
-    player->y = 0;
-    player->item_count = 0;  // 아이템 초기화
-}
-
 Player* createPlayer() {
     Player* player = malloc(sizeof(Player));
     player->base.type = PLAYER;
