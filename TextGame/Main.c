@@ -15,7 +15,7 @@
 #include "Canvas.h"
 
 #define MAX_MESSAGES 10
-#define MESSAGE_LENGTH 100
+#define MESSAGE_LENGTH 200
 
 // 메시지 구조체 정의
 typedef struct {
@@ -27,11 +27,9 @@ typedef struct {
 Message messages[MAX_MESSAGES];
 int message_count = 0;
 
-bool is_updated = false;  // 상태 변경 플래그
-
 // 메시지 추가 함수
 void add_message(const char* text) {
-	if (message_count >= MAX_MESSAGES) {
+	if (message_count > MAX_MESSAGES) {
 		// 가장 오래된 메시지를 삭제하고 메시지들을 앞으로 이동
 		for (int i = 1; i < MAX_MESSAGES; i++) {
 			messages[i - 1] = messages[i];
@@ -64,15 +62,13 @@ void display_game_area() {
 
 // 하단 플레이어 스탯 및 아이템 공간 출력 함수
 void display_status_area(Player* player) {
-	COORD console_size = get_console_size();
-
+	COORD size = get_console_size();
 	char status[100];
-
 	snprintf(status, sizeof(status), "체력: %d | 공격력: %d | 방어력: %d",
 		player->base.health, player->base.attack, player->base.defense);
 
-	draw_to_back_buffer(0, console_size.Y - 6, "===== 플레이어 상태 =====");
-	draw_to_back_buffer(0, console_size.Y - 5, status);
+	draw_to_back_buffer(0, SCREEN_HEIGHT - 3, "===== 플레이어 상태 =====");
+	draw_to_back_buffer(0, SCREEN_HEIGHT - 2, status);
 }
 
 
@@ -147,38 +143,52 @@ void random_event(Player* player) {
 	display_game_area(event_message);
 }
 
-void move_room(char direction) {
-	switch (direction) {
-	case 'N':
-		add_message("북쪽 방향으로 이동 중...");
-		break;
-	case 'S':
-		add_message("남쪽 방향으로 이동 중...");
-		break;
-	case 'E':
-		add_message("동쪽 방향으로 이동 중...");
-		break;
-	case 'W':
-		add_message("서쪽 방향으로 이동 중...");
-		break;
-	default:
-		add_message("잘못된 방향입니다.");
-		break;
+void move_room(char direction, Player* player) {
+	for (int i = 0; i < 3; i++) {
+		char message[50];
+		snprintf(message, sizeof(message), "%s 방향으로 이동 중%.*s",
+			direction == 'N' ? "북쪽" :
+			direction == 'S' ? "남쪽" :
+			direction == 'E' ? "동쪽" : "서쪽",
+			i + 1, "...");
+
+		add_message(message); // 메시지 배열에 메시지 추가
+		display_game_area();  // 메시지를 화면에 출력
+		display_status_area(player); // 하단 플레이어 스탯 및 아이템 공간 출력
+		render();             // 백 버퍼 내용을 콘솔에 출력
+		Sleep(333);           // 0.333초 대기
+
+		// 출력한 메시지 삭제 (맨 앞 메시지를 지우고 배열을 앞으로 당김)
+		if (message_count > 0) {
+			messages[0].is_visible = false;  // 표시하지 않도록 설정
+			for (int j = 1; j < message_count; j++) {
+				messages[j - 1] = messages[j];
+			}
+			message_count--;  // 메시지 개수 감소
+		}
 	}
 }
 
 int main() {
 	SetConsoleOutputCP(CP_UTF8);
 	SetConsoleCP(CP_UTF8);
+	init_console(); // 콘솔 초기화 ( 커서 숨김, 콘솔 창 최대화)
+	COORD console_size = get_console_size(); // 콘솔 창 크기 가져오기
+	set_console_size(console_size.X, console_size.Y); // 콘솔 창 버퍼, 창 크기 설정
+	SCREEN_WIDTH = console_size.X; // 콘솔 창 너비 설정
+	SCREEN_HEIGHT = console_size.Y; // 콘솔 창 높이 설정
+	init_back_buffer(); // 백 버퍼 초기화
+	//** 전체 화면에서 플레이 해야 버그가 없음 **//
+
 	// 플레이어 생성
 	Player* player = createPlayer(&player);
 
 	const int FPS = 33;
 	const int frameDelay = 1000 / FPS;  // 각 프레임당 대기 시간 (밀리초)
 
-	init_console();              // 콘솔 초기화
 
 	while (player->base.health > 0) { // 플레이어 체력이 0 이상인 동안 반복
+		srand((unsigned int)time(NULL));  // 난수 생성기 초기화
 		clear_back_buffer();
 
 		display_game_area();  // 게임 로직 공간 출력
@@ -189,17 +199,17 @@ int main() {
 			char input = toupper(_getch());  // 키 입력을 대문자로 받기
 			switch (input)
 			{
-			case 'N':
-				move_room('N');
+			case 'W':
+				move_room('N', player);
 				break;
 			case 'S':
-				move_room('S');
+				move_room('S', player);
 				break;
-			case 'E':
-				move_room('E');
+			case 'D':
+				move_room('E', player);
 				break;
-			case 'W':
-				move_room('W');
+			case 'A':
+				move_room('W', player);
 				break;
 			case 'Q': // 'q'를 누르면 게임 종료
 				add_message("게임 종료\n");
@@ -208,7 +218,6 @@ int main() {
 			default:
 				break;
 			}
-			//random_event(player); // 이동 중 랜덤 이벤트 발생 가능
 		}
 
 		if (player->base.health <= 0) {
@@ -219,6 +228,6 @@ int main() {
 		render();			// 백 버퍼 내용을 화면에 렌더링
 		Sleep(frameDelay); // 30fps로 고정
 	}
-
+	free_back_buffer();
 	return 0;
 }

@@ -1,23 +1,26 @@
 #pragma once
 #include <windows.h>
 #include <stdio.h>
+#include "Utils.h"
 
-#define SCREEN_WIDTH 80
-#define SCREEN_HEIGHT 25
+int SCREEN_WIDTH;
+int SCREEN_HEIGHT;
 
 // 이중 버퍼링을 위한 백 버퍼 정의
-char backBuffer[SCREEN_HEIGHT][SCREEN_WIDTH + 1];
+char** backBuffer;
 
-// 콘솔 핸들 정의
-HANDLE consoleHandle;
+void init_back_buffer() {
+    backBuffer = (char**)malloc(SCREEN_HEIGHT * sizeof(char*));
+    for (int i = 0; i < SCREEN_HEIGHT; i++) {
+        backBuffer[i] = (char*)malloc((SCREEN_WIDTH + 1) * sizeof(char));
+    }
+}
 
-// 콘솔 초기화 함수 (커서 숨김)
-void init_console() {
-    consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_CURSOR_INFO cursorInfo;
-    cursorInfo.bVisible = FALSE;  // 커서 숨기기
-    cursorInfo.dwSize = 1;
-    SetConsoleCursorInfo(consoleHandle, &cursorInfo);
+void free_back_buffer() {
+    for (int i = 0; i < SCREEN_HEIGHT; i++) {
+        free(backBuffer[i]);
+    }
+    free(backBuffer);
 }
 
 // 백 버퍼 초기화 함수 (빈 공간으로 초기화)
@@ -39,10 +42,12 @@ void draw_to_back_buffer(int x, int y, const char* text) {
 
 // 백 버퍼 내용을 실제 화면으로 복사하는 함수 (렌더링)
 void render() {
-    COORD cursorPos = { 0, 0 };  // 커서를 (0, 0)으로 이동
-    SetConsoleCursorPosition(consoleHandle, cursorPos);
-
+    set_cursor_position(0, 0);
     for (int i = 0; i < SCREEN_HEIGHT; i++) {
-        printf("%s\n", backBuffer[i]);  // 백 버퍼 내용을 화면에 출력
+        fwrite(backBuffer[i], 1, SCREEN_WIDTH, stdout);
+        if (i < SCREEN_HEIGHT - 1) {
+            fputc('\n', stdout);
+        }
     }
+    fflush(stdout);
 }
