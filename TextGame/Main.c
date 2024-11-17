@@ -13,37 +13,12 @@
 #include "Player.h"
 #include "Enemy.h"
 #include "Canvas.h"
+#include "MessageManager.h"
+#include "ItemManager.h"
 
-#define MAX_MESSAGES 10
-#define MESSAGE_LENGTH 200
-
-// 메시지 구조체 정의
-typedef struct {
-	char content[MESSAGE_LENGTH];
-	bool is_visible;  // 표시 여부를 나타내는 플래그
-} Message;
-
-// 메시지 배열 및 메시지 개수
-Message messages[MAX_MESSAGES];
-int message_count = 0;
-
-// 메시지 추가 함수
-void add_message(const char* text) {
-	if (message_count > MAX_MESSAGES) {
-		// 가장 오래된 메시지를 삭제하고 메시지들을 앞으로 이동
-		for (int i = 1; i < MAX_MESSAGES; i++) {
-			messages[i - 1] = messages[i];
-		}
-		message_count = MAX_MESSAGES - 1;
-	}
-
-	// 새 메시지를 추가하고 표시 상태를 true로 설정
-	strncpy(messages[message_count].content, text, MESSAGE_LENGTH - 1);
-	messages[message_count].content[MESSAGE_LENGTH - 1] = '\0';
-	messages[message_count].is_visible = true;  // 새 메시지를 표시하도록 설정
-	message_count++;
-}
-
+// 전역 변수
+MessageSystem* messageSystem; // 메시지 시스템
+ItemSystem* itemSystem; // 아이템 시스템
 
 // 메시지를 출력하는 함수
 void display_game_area() {
@@ -51,14 +26,12 @@ void display_game_area() {
 	draw_to_back_buffer(0, 0, "===== 게임 로직 공간 =====");
 	draw_to_back_buffer(0, 1, "명령을 입력하세요 (N: 북쪽 이동, S: 남쪽 이동, E: 동쪽 이동, W: 서쪽 이동, B: 전투 시작, I: 아이템 사용)");
 
-	for (int i = 0; i < message_count; i++) {
-		if (messages[i].is_visible) {
-			draw_to_back_buffer(1, i + 2, messages[i].content);
+	for (int i = 0; i < messageSystem->capacity; i++) {
+		if (messageSystem->messages[i].is_visible) {
+			draw_to_back_buffer(0, i + 2, messageSystem->messages[i].content);
 		}
 	}
 }
-
-
 
 // 하단 플레이어 스탯 및 아이템 공간 출력 함수
 void display_status_area(Player* player) {
@@ -67,8 +40,27 @@ void display_status_area(Player* player) {
 	snprintf(status, sizeof(status), "체력: %d | 공격력: %d | 방어력: %d",
 		player->base.health, player->base.attack, player->base.defense);
 
-	draw_to_back_buffer(0, SCREEN_HEIGHT - 3, "===== 플레이어 상태 =====");
-	draw_to_back_buffer(0, SCREEN_HEIGHT - 2, status);
+	draw_to_back_buffer(0, SCREEN_HEIGHT - 5, "===== 플레이어 상태 =====");
+	draw_to_back_buffer(0, SCREEN_HEIGHT - 4, status);
+	draw_to_back_buffer(0, SCREEN_HEIGHT - 3, "===== 보유 아이템 =====");
+	// 보유 아이템 출력
+	if (player->item_count > 0) {
+		char item_message[1000] = { 0 };  // 모든 아이템을 저장할 메시지
+
+		for (int i = 0; i < player->item_count; i++) {
+			// 아이템 이름을 메시지에 추가
+			strncat(item_message, player->items[i], sizeof(item_message) - strlen(item_message) - 1);
+
+			// 마지막 아이템이 아닌 경우 쉼표와 공백 추가
+			if (i != player->item_count - 1) {
+				strncat(item_message, ", ", sizeof(item_message) - strlen(item_message) - 1);
+			}
+		}
+
+		// 최종 메시지 출력 (draw_to_back_buffer는 화면 출력 함수라고 가정)
+		draw_to_back_buffer(0, SCREEN_HEIGHT - 2, item_message);
+	}
+
 }
 
 
@@ -108,24 +100,45 @@ void use_item(Player* player, char* item_name) {
 	}
 }
 
+
+void add_random_item_to_player(Player* player) {
+    if (player->item_count < MAX_ITEMS) {
+        int random_index = rand() % itemSystem->count;
+        snprintf(player->items[player->item_count], sizeof(player->items[player->item_count]), "%s", itemSystem->items[random_index].name);
+        player->item_count++;
+		// 아이템 이름을 포함한 메시지 추가
+		char message[1000];
+		snprintf(message, sizeof(message), "아이템 '%s'를 획득했습니다!", itemSystem->items[random_index].name);
+		add_message(messageSystem, message);
+	}
+	else {
+		add_message(messageSystem, "더 이상 아이템을 가져올 수 없습니다.");
+	}
+}
 void random_event(Player* player) {
-	int event_type = rand() % 4; // 네 가지 랜덤 이벤트 중 하나 발생
-	char event_message[100];     // 랜덤 이벤트 메시지를 저장할 변수
+	//int event_type = rand() % 5; // 네 가지 랜덤 이벤트 중 하나 발생
+	int event_type = 2; // 네 가지 랜덤 이벤트 중 하나 발생
+	char event_message[1000];     // 랜덤 이벤트 메시지를 저장할 변수
+	int damage = (rand() % 40) + 10;
 
 	switch (event_type) {
 	case 0:
-		snprintf(event_message, sizeof(event_message), "외계 광물을 발견했습니다! 공격력이 증가합니다.");
-		player->base.attack += 2;
+		snprintf(event_message, sizeof(event_message), "신호장치를 발견하였습니다!");
+		add_message(messageSystem, event_message);
+		player->signal_device_count++;
 		break;
 	case 1:
-		snprintf(event_message, sizeof(event_message), "폭풍이 발생했습니다! 체력이 감소합니다.");
-		player->base.health -= 5;
+		snprintf(event_message, sizeof(event_message), "폭풍이 발생했습니다! 체력이 %d 감소합니다.", damage);
+		add_message(messageSystem, event_message);
+		player->base.health -= damage;
 		break;
 	case 2:
-		snprintf(event_message, sizeof(event_message), "친근한 외계 생명체와 만났습니다! 정보를 얻었습니다.");
+		snprintf(event_message, sizeof(event_message), "아이템을 발견하였습니다.");
+		add_message(messageSystem, event_message);
+		add_random_item_to_player(player);
 		break;
 	case 3:
-		if (player->item_count < 10) {
+		if (player->item_count < MAX_ITEMS) {
 			snprintf(event_message, sizeof(event_message), "아이템 상자를 발견했습니다! '의료 키트'를 획득합니다.");
 			snprintf(player->items[player->item_count], sizeof(player->items[player->item_count]), "의료 키트");
 			player->item_count++;
@@ -145,43 +158,49 @@ void random_event(Player* player) {
 
 void move_room(char direction, Player* player) {
 	for (int i = 0; i < 3; i++) {
-		char message[50];
+		char message[1000];
 		snprintf(message, sizeof(message), "%s 방향으로 이동 중%.*s",
 			direction == 'N' ? "북쪽" :
 			direction == 'S' ? "남쪽" :
 			direction == 'E' ? "동쪽" : "서쪽",
 			i + 1, "...");
 
-		add_message(message); // 메시지 배열에 메시지 추가
-		display_game_area();  // 메시지를 화면에 출력
-		display_status_area(player); // 하단 플레이어 스탯 및 아이템 공간 출력
-		render();             // 백 버퍼 내용을 콘솔에 출력
+		remove_messages(messageSystem);
+		add_message(messageSystem, message);  // 메시지 시스템에 메시지 추가
+		display_game_area(messageSystem);     // 메시지 시스템을 화면에 출력
+		display_status_area(player);          // 하단 플레이어 스탯 출력
+		render();
 		Sleep(333);           // 0.333초 대기
 
 		// 출력한 메시지 삭제 (맨 앞 메시지를 지우고 배열을 앞으로 당김)
-		if (message_count > 0) {
-			messages[0].is_visible = false;  // 표시하지 않도록 설정
-			for (int j = 1; j < message_count; j++) {
-				messages[j - 1] = messages[j];
-			}
-			message_count--;  // 메시지 개수 감소
+		if (i < 2) { // 마지막 메시지는 삭제하지 않음
+			remove_messages(messageSystem);
 		}
 	}
+	random_event(player); // 랜덤 이벤트 발생
 }
+
 
 int main() {
 	SetConsoleOutputCP(CP_UTF8);
 	SetConsoleCP(CP_UTF8);
+	//** 전체 화면에서 플레이 해야 버그가 없음 **//
 	init_console(); // 콘솔 초기화 ( 커서 숨김, 콘솔 창 최대화)
 	COORD console_size = get_console_size(); // 콘솔 창 크기 가져오기
 	set_console_size(console_size.X, console_size.Y); // 콘솔 창 버퍼, 창 크기 설정
 	SCREEN_WIDTH = console_size.X; // 콘솔 창 너비 설정
 	SCREEN_HEIGHT = console_size.Y; // 콘솔 창 높이 설정
 	init_back_buffer(); // 백 버퍼 초기화
-	//** 전체 화면에서 플레이 해야 버그가 없음 **//
+
+	// 초기 메시지 시스템 생성
+	messageSystem = create_message_system(SCREEN_HEIGHT - 6);  // 화면 하단을 제외한 높이만큼 메시지 저장
+
+	// 아이템 시스템 생성
+	itemSystem = create_item_system();
+	load_items_from_file(itemSystem, "items.txt");
 
 	// 플레이어 생성
-	Player* player = createPlayer(&player);
+	Player* player = create_player(&player);
 
 	const int FPS = 33;
 	const int frameDelay = 1000 / FPS;  // 각 프레임당 대기 시간 (밀리초)
@@ -212,7 +231,7 @@ int main() {
 				move_room('W', player);
 				break;
 			case 'Q': // 'q'를 누르면 게임 종료
-				add_message("게임 종료\n");
+				add_message("게임 종료!", messageSystem);
 				player->base.health = 0;
 				break;
 			default:
@@ -225,9 +244,16 @@ int main() {
 			free(player);
 			break;
 		}
+		if (player->signal_device_count == MAX_SIGNAL_DEVICE)
+		{
+			display_game_area("게임 클리어!");
+			free(player);
+			break;
+		}
 		render();			// 백 버퍼 내용을 화면에 렌더링
 		Sleep(frameDelay); // 30fps로 고정
 	}
 	free_back_buffer();
+	free_message_system(messageSystem);
 	return 0;
 }

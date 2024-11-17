@@ -11,7 +11,7 @@ void enemy_attack(void* self, void* target) {
     character_attack(self, target);  // 기본 공격 로직 호출
 }
 
-Enemy* createEnemy() {
+Enemy* create_enemy() {
     Enemy* enemy = malloc(sizeof(Enemy));
     enemy->base.type = ENEMY;
     enemy->base.health = 50;
