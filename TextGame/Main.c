@@ -26,7 +26,7 @@ void display_game_area() {
 	draw_to_back_buffer(0, 0, "===== 게임 로직 공간 =====");
 	draw_to_back_buffer(0, 1, "명령을 입력하세요 (N: 북쪽 이동, S: 남쪽 이동, E: 동쪽 이동, W: 서쪽 이동, B: 전투 시작, I: 아이템 사용)");
 
-	for (int i = 0; i < messageSystem->capacity; i++) {
+	for (int i = 0; i < messageSystem->count; i++) {
 		if (messageSystem->messages[i].is_visible) {
 			draw_to_back_buffer(0, i + 2, messageSystem->messages[i].content);
 		}
@@ -49,7 +49,7 @@ void display_status_area(Player* player) {
 
 		for (int i = 0; i < player->item_count; i++) {
 			// 아이템 이름을 메시지에 추가
-			strncat(item_message, player->items[i], sizeof(item_message) - strlen(item_message) - 1);
+			strncat(item_message, player->inventory[i].name, sizeof(item_message) - strlen(item_message) - 1);
 
 			// 마지막 아이템이 아닌 경우 쉼표와 공백 추가
 			if (i != player->item_count - 1) {
@@ -83,33 +83,51 @@ void battle(Player* player, Enemy* enemy) {
 }
 
 void use_item(Player* player, char* item_name) {
-	if (strcmp(item_name, "의료 키트") == 0) {
-		player->base.health += 10; // 체력 회복
-		printf("의료 키트를 사용하여 체력이 회복되었습니다! 현재 체력: %d\n", player->base.health);
-	}
-	else if (strcmp(item_name, "에너지 블레이드") == 0) {
-		player->base.attack += 5; // 공격력 증가
-		printf("에너지 블레이드를 사용하여 공격력이 증가했습니다! 현재 공격력: %d\n", player->base.attack);
-	}
-	else if (strcmp(item_name, "강화 슈트") == 0) {
-		player->base.defense += 5; // 방어력 증가
-		printf("강화 슈트를 착용하여 방어력이 증가했습니다! 현재 방어력: %d\n", player->base.defense);
-	}
-	else {
-		printf("알 수 없는 아이템입니다.\n");
-	}
+	
 }
 
 
 void add_random_item_to_player(Player* player) {
     if (player->item_count < MAX_ITEMS) {
         int random_index = rand() % itemSystem->count;
-        snprintf(player->items[player->item_count], sizeof(player->items[player->item_count]), "%s", itemSystem->items[random_index].name);
-        player->item_count++;
-		// 아이템 이름을 포함한 메시지 추가
+		// 무슨 아이템을 획득했는지 메시지 출력
 		char message[1000];
 		snprintf(message, sizeof(message), "아이템 '%s'를 획득했습니다!", itemSystem->items[random_index].name);
 		add_message(messageSystem, message);
+		// 소모품 아이템인 경우 획득하면 플레이어 인벤토리에 추가
+		if (itemSystem->items[random_index].type == 0) {
+			player->inventory[player->item_count].index = itemSystem->items[random_index].index;
+			// 아이템 이름을 복사
+			strncpy(player->inventory[player->item_count].name, itemSystem->items[random_index].name, sizeof(player->inventory[player->item_count].name) - 1);
+			// 문자열 끝에 NULL 문자 추가
+			player->inventory[player->item_count].name[sizeof(player->inventory[player->item_count].name) - 1] = '\0';
+
+			player->inventory[player->item_count].type = itemSystem->items[random_index].type;
+			player->inventory[player->item_count].value = itemSystem->items[random_index].value;
+			player->item_count++;
+		}
+		// 장비 아이템인 경우
+		if (itemSystem->items[random_index].type == 1)
+		{
+			// 에너지 블레이드인 경우
+			if (itemSystem->items[random_index].index == 2)
+			{
+				player->base.attack += itemSystem->items[random_index].value;
+				char message[1000];
+				snprintf(message, sizeof(message), "공격력이 %d 증가하였습니다.", itemSystem->items[random_index].value);
+				add_message(messageSystem, message);
+				return;
+			}
+			// 강화 슈트인 경우
+			else if (itemSystem->items[random_index].index == 4)
+			{
+				player->base.defense += itemSystem->items[random_index].value;
+				char message[1000];
+				snprintf(message, sizeof(message), "방어력이 %d 증가하였습니다.", itemSystem->items[random_index].value);
+				add_message(messageSystem, message);
+				return;
+			}
+		}
 	}
 	else {
 		add_message(messageSystem, "더 이상 아이템을 가져올 수 없습니다.");
@@ -123,37 +141,49 @@ void random_event(Player* player) {
 
 	switch (event_type) {
 	case 0:
+		// 신호장치 이벤트
 		snprintf(event_message, sizeof(event_message), "신호장치를 발견하였습니다!");
 		add_message(messageSystem, event_message);
 		player->signal_device_count++;
 		break;
 	case 1:
+		// 폭풍 이벤트
 		snprintf(event_message, sizeof(event_message), "폭풍이 발생했습니다! 체력이 %d 감소합니다.", damage);
 		add_message(messageSystem, event_message);
 		player->base.health -= damage;
 		break;
 	case 2:
+		// 아이템 이벤트
 		snprintf(event_message, sizeof(event_message), "아이템을 발견하였습니다.");
 		add_message(messageSystem, event_message);
 		add_random_item_to_player(player);
 		break;
 	case 3:
-		if (player->item_count < MAX_ITEMS) {
-			snprintf(event_message, sizeof(event_message), "아이템 상자를 발견했습니다! '의료 키트'를 획득합니다.");
-			snprintf(player->items[player->item_count], sizeof(player->items[player->item_count]), "의료 키트");
-			player->item_count++;
-		}
-		else {
-			snprintf(event_message, sizeof(event_message), "더 이상 아이템을 획득할 수 없습니다.");
-		}
-		break;
-	default:
-		snprintf(event_message, sizeof(event_message), "아무 일도 일어나지 않았습니다.");
+		// 전투 이벤트
+		snprintf(event_message, sizeof(event_message), "적을 만났습니다! 전투 시작!");
+		add_message(messageSystem, event_message);
+		Enemy* enemy = create_enemy();
+		battle(player, enemy);
 		break;
 	}
 
-	// 백 버퍼에 랜덤 이벤트 메시지 그리기
-	display_game_area(event_message);
+	display_game_area();
+	display_status_area(player);
+	render();
+
+	// 메시지 삭제 진행 표시
+	for (int i = 0; i <= 100; i += 5) {
+		char progress_message[100];
+		snprintf(progress_message, sizeof(progress_message), "이벤트 종료 중... %d%%", i);
+		add_message(messageSystem, progress_message);
+		display_game_area();
+		display_status_area(player);
+		render();
+		remove_last_message(messageSystem);
+		Sleep(50); // 0.5초 대기
+	}
+	Sleep(1000); // 1초 대기
+	remove_messages(messageSystem);
 }
 
 void move_room(char direction, Player* player) {
@@ -180,7 +210,6 @@ void move_room(char direction, Player* player) {
 	random_event(player); // 랜덤 이벤트 발생
 }
 
-
 int main() {
 	SetConsoleOutputCP(CP_UTF8);
 	SetConsoleCP(CP_UTF8);
@@ -204,17 +233,19 @@ int main() {
 
 	const int FPS = 33;
 	const int frameDelay = 1000 / FPS;  // 각 프레임당 대기 시간 (밀리초)
-
+	bool is_able_input = true;
 
 	while (player->base.health > 0) { // 플레이어 체력이 0 이상인 동안 반복
 		srand((unsigned int)time(NULL));  // 난수 생성기 초기화
+		is_able_input = true; // 입력 가능 상태로 변경
 		clear_back_buffer();
 
 		display_game_area();  // 게임 로직 공간 출력
 		display_status_area(player); // 하단 플레이어 스탯 및 아이템 공간 출력
 
 		// 비블로킹 방식으로 입력 받기 (_kbhit() 사용)
-		if (_kbhit()) {  // 키보드 입력이 있는지 확인
+		if (_kbhit() && is_able_input) {  // 키보드 입력이 있는지 확인 && 입력 가능 상태인지 확인
+			is_able_input = false; // 입력 불가능 상태로 변경
 			char input = toupper(_getch());  // 키 입력을 대문자로 받기
 			switch (input)
 			{

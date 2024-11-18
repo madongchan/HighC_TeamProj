@@ -38,6 +38,16 @@ void add_message(MessageSystem* system, const char* text) {
     system->count++;
 }
 
+// 마지막 메시지를 제거하는 함수
+void remove_last_message(MessageSystem* system) {
+	if (system->count > 0) {
+		free(system->messages[system->count].content);
+		system->messages[system->count].content = NULL;
+		system->messages[system->count].is_visible = false;
+		system->count--;
+	}
+}
+
 void remove_messages(MessageSystem* system) {
 	for (int i = 0; i < system->count; i++) {
 		free(system->messages[i].content);

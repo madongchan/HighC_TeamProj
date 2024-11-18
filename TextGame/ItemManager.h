@@ -11,7 +11,8 @@ typedef enum {
 
 // 아이템 구조체
 typedef struct {
-    char* name;       // 아이템 이름
+	int index;        // 아이템 번호
+    char name[100];       // 아이템 이름
     ItemType type;    // 아이템 타입
     int value;        // 효과 값
 } Item;
@@ -46,9 +47,9 @@ void load_items_from_file(ItemSystem* system, const char* filename) {
     }
 
     char name[100];
-    int type, value;
+    int index, type, value;
 
-    while (fscanf(file, "%[^,],%d,%d", name, &type, &value) == 3) {
+    while (fscanf(file, "%d,%[^,],%d,%d", &index, name, &type, &value) == 4) {
         // 개행 문자 제거
         remove_newline(name);
 
@@ -60,13 +61,8 @@ void load_items_from_file(ItemSystem* system, const char* filename) {
         }
 
         Item* item = &system->items[system->count];
-        item->name = (char*)malloc(strlen(name) + 1);
-        if (!item->name) {
-            fprintf(stderr, "Error: Memory allocation failed for item name\n");
-            fclose(file);
-            return;
-        }
 
+		item->index = index;
         strncpy(item->name, name, strlen(name) + 1);
         item->type = (ItemType)type;
         item->value = value;
