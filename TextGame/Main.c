@@ -39,7 +39,10 @@ void display_status_area(Player* player) {
 	char status[100];
 	snprintf(status, sizeof(status), "체력: %d | 공격력: %d | 방어력: %d",
 		player->base.health, player->base.attack, player->base.defense);
-
+	
+	char massage[1000];
+	snprintf(massage, sizeof(massage), "사이즈: %d , %d", size.X, size.Y);
+	draw_to_back_buffer(0, size.Y - 6, massage);
 	draw_to_back_buffer(0, SCREEN_HEIGHT - 5, "===== 플레이어 상태 =====");
 	draw_to_back_buffer(0, SCREEN_HEIGHT - 4, status);
 	draw_to_back_buffer(0, SCREEN_HEIGHT - 3, "===== 보유 아이템 =====");
@@ -65,21 +68,7 @@ void display_status_area(Player* player) {
 
 
 void battle(Player* player, Enemy* enemy) {
-	printf("전투 시작! %s와(과) 싸웁니다!\n", enemy->name);
 
-	while (player->base.health > 0 && enemy->base.health > 0) {
-		player->base.attack_func(&player, &enemy);  // 플레이어가 적을 공격
-		printf("적 남은 체력: %d\n", enemy->base.health);
-
-		printf("적 남은 체력: %d\n", enemy->base.health);
-		enemy->base.attack_func(&enemy, &player);   // 적이 플레이어를 공격
-		printf("플레이어 남은 체력: %d\n", player->base.health);
-
-		if (player->base.health <= 0) {
-			printf("플레이어가 사망했습니다...\n");
-			break;
-		}
-	}
 }
 
 void use_item(Player* player, char* item_name) {
@@ -134,8 +123,8 @@ void add_random_item_to_player(Player* player) {
 	}
 }
 void random_event(Player* player) {
-	//int event_type = rand() % 5; // 네 가지 랜덤 이벤트 중 하나 발생
-	int event_type = 2; // 네 가지 랜덤 이벤트 중 하나 발생
+	int event_type = rand() % 5; // 네 가지 랜덤 이벤트 중 하나 발생
+	//int event_type = 2; // 네 가지 랜덤 이벤트 중 하나 발생
 	char event_message[1000];     // 랜덤 이벤트 메시지를 저장할 변수
 	int damage = (rand() % 40) + 10;
 
