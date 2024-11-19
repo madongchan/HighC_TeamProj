@@ -67,21 +67,66 @@ void display_status_area(Player* player) {
 }
 
 
+void use_item(Player* player, Enemy* enemy) {
+	bool is_able_input = true;
+	add_message(messageSystem, "아이템을 사용하시겠습니까? : (0 : 의료키트 사용, 1 : 체력캡슐 사용)");
+	add_message(messageSystem, "(2 : 플라즈마 포 사용, 3 : 에너지 실드 사용, 4 : 빛나는 유물 사용");
+	add_message(messageSystem, "아이템 인덱스 번호를 입력해주세요 : ");
+	display_game_area();
+	display_status_area(player);
+	render();
+	is_able_input = false;
+	int item_index = _getch();
+	switch (item_index)
+	{
+	case '0':
+		add_message(messageSystem, "의료키트를 사용했습니다.");
+		player->base.health += 10;
+		break;
+	case '1':
+		add_message(messageSystem, "체력캡슐을 사용했습니다.");
+		player->base.health += 5;
+		break;
+	case '2':
+		add_message(messageSystem, "플라즈마 포를 사용했습니다");
+		enemy->base.health -= 20;
+		break;
+	case '3':
+		add_message(messageSystem, "에너지 실드를 사용했습니다.");
+		player->base.defense += 10;
+		break;
+	case '4':
+		add_message(messageSystem, "빛나는 유물을 사용했습니다.");
+		int relics = rand() % 3 + 1;
+		//빛나는 유물의 랜덤효과
+		switch (relics)
+		{
+		case '1':
+			add_message(messageSystem, "공격력이 올라갔습니다.");
+			player->base.attack += 10;
+			break;
+		case '2':
+			add_message(messageSystem, "체력이 회복되었습니다.");
+			player->base.health += 10;
+			break;
+		case '3':
+			add_message(messageSystem, "방어력이 올라갔습니다.");
+			player->base.defense += 10;
+			break;
+		}
+	}
+}
+
 void battle(Player* player, Enemy* enemy) {
 	// 전투 시작 안내문 출력
 	char* message[1000];
 	snprintf(message, sizeof(message), "'%s'와 조우했다.", enemy->name);
 	add_message(messageSystem, message);
-	if (player)
+	if (player->item_count > 0)
 	{
-		
+		use_item(player, enemy);
 	}
 }
-
-void use_item(Player* player, char* item_name) {
-	
-}
-
 
 void add_random_item_to_player(Player* player) {
     if (player->item_count < MAX_ITEMS) {
@@ -130,8 +175,8 @@ void add_random_item_to_player(Player* player) {
 	}
 }
 void random_event(Player* player) {
-	int event_type = rand() % 5; // 네 가지 랜덤 이벤트 중 하나 발생
-	//int event_type = 2; // 네 가지 랜덤 이벤트 중 하나 발생
+	//int event_type = rand() % 5; // 네 가지 랜덤 이벤트 중 하나 발생
+	int event_type = 3; // 네 가지 랜덤 이벤트 중 하나 발생
 	char event_message[1000];     // 랜덤 이벤트 메시지를 저장할 변수
 	int damage = (rand() % 40) + 10;
 
@@ -168,18 +213,18 @@ void random_event(Player* player) {
 	render();
 
 	// 메시지 삭제 진행 표시
-	for (int i = 0; i <= 100; i += 5) {
-		char progress_message[100];
-		snprintf(progress_message, sizeof(progress_message), "이벤트 종료 중... %d%%", i);
-		add_message(messageSystem, progress_message);
-		display_game_area();
-		display_status_area(player);
-		render();
-		remove_last_message(messageSystem);
-		Sleep(50); // 0.5초 대기
-	}
-	Sleep(1000); // 1초 대기
-	remove_messages(messageSystem);
+	//for (int i = 0; i <= 100; i += 5) {
+	//	char progress_message[100];
+	//	snprintf(progress_message, sizeof(progress_message), "이벤트 종료 중... %d%%", i);
+	//	add_message(messageSystem, progress_message);
+	//	display_game_area();
+	//	display_status_area(player);
+	//	render();
+	//	remove_last_message(messageSystem);
+	//	Sleep(50); // 0.5초 대기
+	//}
+	//Sleep(1000); // 1초 대기
+	//remove_messages(messageSystem);
 }
 
 void move_room(char direction, Player* player) {
