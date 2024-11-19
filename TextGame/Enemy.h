@@ -3,7 +3,7 @@
 
 typedef struct {
     Character base;  // Character 구조체를 상속받음 (첫 번째 멤버로 포함)
-    char name[30];   // 적만의 특수한 속성 (이름)
+    char name[100];   // 적만의 특수한 속성 (이름)
 } Enemy;
 
 void enemy_attack(void* self, void* target) {

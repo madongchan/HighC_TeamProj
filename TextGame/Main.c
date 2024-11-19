@@ -24,7 +24,7 @@ ItemSystem* itemSystem; // 아이템 시스템
 void display_game_area() {
 	clear_back_buffer();
 	draw_to_back_buffer(0, 0, "===== 게임 로직 공간 =====");
-	draw_to_back_buffer(0, 1, "명령을 입력하세요 (N: 북쪽 이동, S: 남쪽 이동, E: 동쪽 이동, W: 서쪽 이동, B: 전투 시작, I: 아이템 사용)");
+	draw_to_back_buffer(0, 1, "명령을 입력하세요 (N: 북쪽 이동, S: 남쪽 이동, E: 동쪽 이동, W: 서쪽 이동)");
 
 	for (int i = 0; i < messageSystem->count; i++) {
 		if (messageSystem->messages[i].is_visible) {
@@ -68,7 +68,14 @@ void display_status_area(Player* player) {
 
 
 void battle(Player* player, Enemy* enemy) {
-
+	// 전투 시작 안내문 출력
+	char* message[1000];
+	snprintf(message, sizeof(message), "'%s'와 조우했다.", enemy->name);
+	add_message(messageSystem, message);
+	if (player)
+	{
+		
+	}
 }
 
 void use_item(Player* player, char* item_name) {
@@ -229,8 +236,6 @@ int main() {
 		is_able_input = true; // 입력 가능 상태로 변경
 		clear_back_buffer();
 
-		display_game_area();  // 게임 로직 공간 출력
-		display_status_area(player); // 하단 플레이어 스탯 및 아이템 공간 출력
 
 		// 비블로킹 방식으로 입력 받기 (_kbhit() 사용)
 		if (_kbhit() && is_able_input) {  // 키보드 입력이 있는지 확인 && 입력 가능 상태인지 확인
@@ -251,28 +256,29 @@ int main() {
 				move_room('W', player);
 				break;
 			case 'Q': // 'q'를 누르면 게임 종료
-				add_message("게임 종료!", messageSystem);
-				player->base.health = 0;
+				add_message(messageSystem, "게임 종료!");
 				break;
 			default:
 				break;
 			}
 		}
-
 		if (player->base.health <= 0) {
-			display_game_area("게임 오버!");
+			add_message(messageSystem, "플레이어 죽음!");
 			free(player);
 			break;
 		}
 		if (player->signal_device_count == MAX_SIGNAL_DEVICE)
 		{
-			display_game_area("게임 클리어!");
+			add_message(messageSystem, "게임 클리어!");
 			free(player);
 			break;
 		}
+		display_game_area();  // 게임 로직 공간 출력
+		display_status_area(player); // 하단 플레이어 스탯 및 아이템 공간 출력
 		render();			// 백 버퍼 내용을 화면에 렌더링
 		Sleep(frameDelay); // 30fps로 고정
 	}
+	Sleep(2000);
 	free_back_buffer();
 	free_message_system(messageSystem);
 	return 0;
