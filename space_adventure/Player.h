@@ -86,10 +86,10 @@ Player* load_player_data(const char* filename) {
 Player* create_player() {
     // 플레이어 데이터가 저장된 파일이 있는지 확인 
     Player* player;
-    player = load_player_data("player_save.txt");
+    /*player = load_player_data("player_save.txt");
 	if (player != NULL) {
 		return player;
-	}
+	}*/
 
     player = (Player*)malloc(sizeof(Player));
     player->base.type = PLAYER;
