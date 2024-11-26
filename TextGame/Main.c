@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+﻿#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,7 +39,7 @@ void display_status_area(Player* player) {
 	char status[100];
 	snprintf(status, sizeof(status), "체력: %d | 공격력: %d | 방어력: %d",
 		player->base.health, player->base.attack, player->base.defense);
-	
+
 	char massage[1000];
 	snprintf(massage, sizeof(massage), "사이즈: %d , %d", size.X, size.Y);
 	draw_to_back_buffer(0, size.Y - 6, massage);
@@ -129,8 +129,8 @@ void battle(Player* player, Enemy* enemy) {
 }
 
 void add_random_item_to_player(Player* player) {
-    if (player->item_count < MAX_ITEMS) {
-        int random_index = rand() % itemSystem->count;
+	if (player->item_count < MAX_ITEMS) {
+		int random_index = rand() % itemSystem->count;
 		// 무슨 아이템을 획득했는지 메시지 출력
 		char message[1000];
 		snprintf(message, sizeof(message), "아이템 '%s'를 획득했습니다!", itemSystem->items[random_index].name);
@@ -251,10 +251,44 @@ void move_room(char direction, Player* player) {
 	random_event(player); // 랜덤 이벤트 발생
 }
 
+bool is_map_open = false; // 맵 상태를 나타내는 변수
+
+void display_map(Player* player) {
+	// 간단한 맵을 콘솔에 출력
+	clear_back_buffer(); // 기존 화면 지우기
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			char buffer[2];
+			if (i == player->y && j == player->x) {
+				snprintf(buffer, sizeof(buffer), "P"); // 플레이어 위치 표시
+			}
+			else {
+				snprintf(buffer, sizeof(buffer), "*"); // 방 출력
+			}
+			draw_to_back_buffer(j * 2, i, buffer); // 각 방 위치에 그리기
+		}
+	}
+	render();
+}
+
+void handle_map_key(Player* player) {
+	if (is_map_open) {
+		// 맵이 열려있으면 맵을 닫고 원래 화면으로 돌아감
+		is_map_open = false;
+		display_game_area();
+		display_status_area(player);
+		render();
+	}
+	else {
+		// 맵을 열음
+		is_map_open = true;
+		display_map(player);
+	}
+}
+
 int main() {
 	SetConsoleOutputCP(CP_UTF8);
 	SetConsoleCP(CP_UTF8);
-	//** 전체 화면에서 플레이 해야 버그가 없음 **//
 	init_console(); // 콘솔 초기화 ( 커서 숨김, 콘솔 창 최대화)
 	COORD console_size = get_console_size(); // 콘솔 창 크기 가져오기
 	set_console_size(console_size.X, console_size.Y); // 콘솔 창 버퍼, 창 크기 설정
@@ -270,7 +304,10 @@ int main() {
 	load_items_from_file(itemSystem, "items.txt");
 
 	// 플레이어 생성
-	Player* player = create_player(&player);
+	Player* player = create_player();
+
+	player->x = 1; // 플레이어의 초기 위치 설정 (중앙)
+	player->y = 1;
 
 	const int FPS = 33;
 	const int frameDelay = 1000 / FPS;  // 각 프레임당 대기 시간 (밀리초)
@@ -279,29 +316,29 @@ int main() {
 	while (player->base.health > 0) { // 플레이어 체력이 0 이상인 동안 반복
 		srand((unsigned int)time(NULL));  // 난수 생성기 초기화
 		is_able_input = true; // 입력 가능 상태로 변경
-		clear_back_buffer();
-
 
 		// 비블로킹 방식으로 입력 받기 (_kbhit() 사용)
 		if (_kbhit() && is_able_input) {  // 키보드 입력이 있는지 확인 && 입력 가능 상태인지 확인
 			is_able_input = false; // 입력 불가능 상태로 변경
 			char input = toupper(_getch());  // 키 입력을 대문자로 받기
-			switch (input)
-			{
+			switch (input) {
 			case 'W':
-				move_room('N', player);
+				if (!is_map_open && player->y > 0) player->y--;
 				break;
 			case 'S':
-				move_room('S', player);
+				if (!is_map_open && player->y < 2) player->y++;
 				break;
 			case 'D':
-				move_room('E', player);
+				if (!is_map_open && player->x < 2) player->x++;
 				break;
 			case 'A':
-				move_room('W', player);
+				if (!is_map_open && player->x > 0) player->x--;
 				break;
 			case 'Q': // 'q'를 누르면 게임 종료
 				add_message(messageSystem, "게임 종료!");
+				break;
+			case 'M':
+				handle_map_key(player);
 				break;
 			default:
 				break;
@@ -312,15 +349,16 @@ int main() {
 			free(player);
 			break;
 		}
-		if (player->signal_device_count == MAX_SIGNAL_DEVICE)
-		{
+		if (player->signal_device_count == MAX_SIGNAL_DEVICE) {
 			add_message(messageSystem, "게임 클리어!");
 			free(player);
 			break;
 		}
-		display_game_area();  // 게임 로직 공간 출력
-		display_status_area(player); // 하단 플레이어 스탯 및 아이템 공간 출력
-		render();			// 백 버퍼 내용을 화면에 렌더링
+		if (!is_map_open) {
+			display_game_area();  // 게임 로직 공간 출력
+			display_status_area(player); // 하단 플레이어 스탯 및 아이템 공간 출력
+			render();           // 백 버퍼 내용을 화면에 렌더링
+		}
 		Sleep(frameDelay); // 30fps로 고정
 	}
 	Sleep(2000);
