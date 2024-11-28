@@ -36,9 +36,12 @@ void clear_back_buffer() {
 
 // 백 버퍼에 그리기 함수 (텍스트를 특정 위치에 그리기)
 void draw_to_back_buffer(int x, int y, const char* text) {
-    if (x >= 0 && x < SCREEN_WIDTH && y >= 0 && y < SCREEN_HEIGHT) {
-        snprintf(backBuffer[y], SCREEN_WIDTH + 1, "%s", text);  // 텍스트를 백 버퍼에 그리기
-    }
+	if (x >= 0 && x < SCREEN_WIDTH && y >= 0 && y < SCREEN_HEIGHT) {
+		int length = strlen(text);
+		for (int i = 0; i < length && (x + i) < SCREEN_WIDTH; i++) {
+			backBuffer[y][x + i] = text[i];
+		}
+	}
 }
 
 // 메시지를 출력하는 함수

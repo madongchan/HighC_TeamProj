@@ -26,6 +26,24 @@ void display_game() {
 	render();
 }
 
+void display_map(Player* player) {
+	clear_back_buffer(); // 기존 화면 지우기
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			char buffer[2];
+			if (i == player->y && j == player->x) {
+				snprintf(buffer, sizeof(buffer), "P"); // 플레이어 위치 표시
+			}
+			else {
+				snprintf(buffer, sizeof(buffer), "*"); // 방 출력
+			}
+			draw_to_back_buffer(j * 2, i, buffer); // 각 방 위치에 그리기
+		}
+	}
+	display_status_area(player);
+	render();
+}
+
 void use_item(Enemy* enemy) {
 	add_message("아이템을 사용하시겠습니까? : (0 : 의료키트 사용, 1 : 체력캡슐 사용)");
 	add_message("(2 : 플라즈마 포 사용, 3 : 에너지 실드 사용, 4 : 빛나는 유물 사용");
@@ -163,17 +181,15 @@ void random_event() {
 		break;
 	}
 
-	display_game_area();
-	display_status_area(player);
-	render();
+	display_game();
 
 	// 게임을 저장 중이라고 안내하고 다 끝나면 메시지들 삭제
-	save_player_data(player, "player_save.dat");
+	//save_player_data(player, "player_save.dat");
 	for (int i = 0; i <= 100; i += (rand() % 10)) {
 		char progress_message[100];
 		snprintf(progress_message, sizeof(progress_message), "진행 상황 저장 중... %d%%", i);
 		add_message(progress_message);
-		display_game_area();
+		display_game();
 		remove_last_message();
 		Sleep(100); // 0.5초 대기
 	}
@@ -215,6 +231,26 @@ void game_loop() {
 	free(player);
 }
 
+
+bool is_map_open = false; // 맵 상태를 나타내는 변수
+
+void handle_map_key(Player* player) {
+	if (is_map_open) {
+		// 맵이 열려있으면 맵을 닫고 원래 화면으로 돌아감
+		is_map_open = false;
+		display_game_area();
+		display_status_area(player);
+		render();
+	}
+	else {
+		// 맵을 열음
+		is_map_open = true;
+		display_map(player);
+	}
+}
+
+
+
 int main() {
 	init_console(); // 콘솔 초기화 ( 커서 숨김, 콘솔 창 최대화)
 	update_console_size(); // 콘솔 창 크기 설정
@@ -248,18 +284,28 @@ int main() {
 			{
 			case 'W':
 				move_room('N');
+				player->y--;
 				break;
 			case 'S':
 				move_room('S');
+				player->y++;
 				break;
 			case 'D':
 				move_room('E');
+				player->x++;
 				break;
 			case 'A':
 				move_room('W');
+				player->x--;
 				break;
 			case 'Q': // 'q'를 누르면 게임 종료
 				add_message("게임 종료!");
+				display_game();
+				Sleep(1000);
+				exit(1);
+				break;
+			case 'M':
+				handle_map_key(player);
 				break;
 			default:
 				break;
@@ -276,7 +322,10 @@ int main() {
 			free(player);
 			break;
 		}
+		if (is_map_open == false)
+		{
 		display_game(); // 화면 출력
+		}
 		Sleep(frameDelay); // 30fps로 고정
 	}
 	free_back_buffer();

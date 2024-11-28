@@ -97,8 +97,8 @@ Player* create_player() {
     player->base.attack = 20;
     player->base.defense = 10;
     player->base.attack_func = player_attack;
-    player->x = 0;
-    player->y = 0;
+    player->x = 1;
+    player->y = 1;
     // 플레이어가 가진 아이템 목록 초기화
     for (int i = 0; i < MAX_ITEMS; ++i) {
         player->inventory[i].index = -1;  // 초기값으로 초기화
