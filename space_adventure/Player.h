@@ -13,7 +13,6 @@ typedef struct {
 } Player;
 
 void player_attack(void* self, void* target) {
-    printf("플레이어가 공격합니다\n");
     character_attack(self, target);  // 기본 공격 로직 호출
 }
 

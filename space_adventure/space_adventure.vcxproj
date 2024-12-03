@@ -130,6 +130,7 @@
     <ClCompile Include="Main.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Art.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="Character.h" />
     <ClInclude Include="Enemy.h" />

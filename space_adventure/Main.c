@@ -17,71 +17,132 @@
 
 // 전역 변수
 ItemSystem* itemSystem; // 아이템 시스템
-Player* player; // 자주 사용하는 플레이어도 전역 변수로 선언
-Enemy* enemy; // 자주 사용하는 플레이어도 전역 변수로 선언
+EnemySystem* enemySystem; // 적 시스템
+Player* player; // 자주 사용하는 플레이어 객체 전역 변수로 선언
+EventType event_type = None; // 이벤트 타입 전역 변수로 선언
 
 void display_game() {
 	display_game_area();
+	display_game_art(event_type);
 	display_status_area(player);
 	render();
 }
 
-
 void use_item(Enemy* enemy) {
-	add_message("아이템을 사용하시겠습니까? : (0 : 의료키트 사용, 1 : 체력캡슐 사용)");
-	add_message("(2 : 플라즈마 포 사용, 3 : 에너지 실드 사용, 4 : 빛나는 유물 사용");
-	add_message("아이템 인덱스 번호를 입력해주세요 : ");
-	display_game(); // 화면 출력
-	int item_index = _getch();
-	switch (item_index)
-	{
-	case '0':
+	if (player->item_count <= 0) {
+		add_message("사용할 수 있는 아이템이 없습니다.");
+		return;
+	}
+
+	// 플레이어의 인벤토리 출력
+	add_message("사용할 아이템을 선택하세요:");
+	for (int i = 0; i < player->item_count; i++) {
+		char item_message[100];
+		snprintf(item_message, sizeof(item_message), "[%d] %s", i, player->inventory[i].name);
+		add_message(item_message);
+	}
+	display_game(); // 화면 업데이트
+
+	// 사용자 입력 대기
+	char input = _getch(); // 아이템 인덱스를 입력받음
+	int item_index = input - '0'; // 입력된 문자 '0'~'9'를 정수로 변환
+
+	if (item_index < 0 || item_index >= player->item_count) {
+		add_message("잘못된 인덱스입니다.");
+		return;
+	}
+
+	// 선택된 아이템 사용
+	Item* selected_item = &player->inventory[item_index];
+	switch (selected_item->index) {
+	case 0: // 의료키트
 		add_message("의료키트를 사용했습니다.");
-		player->base.health += 10;
+		player->base.health += selected_item->value;
 		break;
-	case '1':
+	case 1: // 체력캡슐
 		add_message("체력캡슐을 사용했습니다.");
-		player->base.health += 5;
+		player->base.health += selected_item->value;
 		break;
-	case '2':
-		add_message("플라즈마 포를 사용했습니다");
-		enemy->base.health -= 20;
+	case 3: // 플라즈마 포
+		add_message("플라즈마 포를 사용했습니다.");
+		enemy->base.health -= selected_item->value;
 		break;
-	case '3':
+	case 5: // 에너지 실드
 		add_message("에너지 실드를 사용했습니다.");
-		player->base.defense += 10;
+		player->base.defense += selected_item->value;
 		break;
-	case '4':
+	case 6: // 빛나는 유물
 		add_message("빛나는 유물을 사용했습니다.");
-		int relics = rand() % 3 + 1;
-		//빛나는 유물의 랜덤효과
-		switch (relics)
-		{
-		case '1':
-			add_message("공격력이 올라갔습니다.");
+		int relic_effect = rand() % 3; // 랜덤 효과
+		switch (relic_effect) {
+		case 0:
+			add_message("공격력이 증가했습니다.");
 			player->base.attack += 10;
 			break;
-		case '2':
+		case 1:
 			add_message("체력이 회복되었습니다.");
 			player->base.health += 10;
 			break;
-		case '3':
-			add_message("방어력이 올라갔습니다.");
+		case 2:
+			add_message("방어력이 증가했습니다.");
 			player->base.defense += 10;
 			break;
 		}
+		break;
+	default:
+		add_message("알 수 없는 아이템입니다.");
+		return;
 	}
+
+	// 사용한 아이템 제거
+	for (int i = item_index; i < player->item_count - 1; i++) {
+		player->inventory[i] = player->inventory[i + 1];
+	}
+	player->item_count--;
+
+	add_message("아이템을 사용했습니다.");
+	display_game(); // 화면 업데이트
 }
+
 
 void battle(Enemy* enemy) {
 	// 전투 시작 안내문 출력
-	char* message[1000];
-	snprintf(message, sizeof(message), "'%s'와 조우했다.", enemy->name);
+	char message[1000];
+	snprintf(message, sizeof(message), "'%s'와 조우했습니다!", enemy->name);
 	add_message(message);
-	if (player->item_count > 0)
-	{
-		use_item(enemy);
+
+	while (player->base.health > 0 && enemy->base.health > 0) {
+		// 플레이어의 턴
+		if (player->item_count > 0) {
+			use_item(enemy);
+		}
+		else {
+			player_attack(&player->base, &enemy->base);
+			snprintf(message, sizeof(message), "플레이어가 '%s'를 공격했습니다.", enemy->name);
+			add_message(message);
+			snprintf(message, sizeof(message), "적 '%s' 체력: %d", enemy->name, enemy->base.health);
+			add_message(message);
+		}
+
+		if (enemy->base.health <= 0) {
+			snprintf(message, sizeof(message), "적 '%s'를 물리쳤습니다!", enemy->name);
+			add_message(message);
+		}
+
+		// 적의 턴
+		enemy_attack(&enemy->base, &player->base);
+		snprintf(message, sizeof(message), "적 '%s'가 플레이어를 공격했습니다.", enemy->name);
+		add_message(message);
+
+		if (player->base.health <= 0) {
+			add_message("플레이어가 사망했습니다! 게임 오버!");
+		}
+
+		Sleep(1000); // 턴 간 대기 시간
 	}
+
+	// 전투 종료 후 적 메모리 해제
+	free(enemy);
 }
 
 void add_random_item_to_player() {
@@ -131,35 +192,41 @@ void add_random_item_to_player() {
 	}
 }
 void random_event() {
-	//int event_type = rand() % 5; // 네 가지 랜덤 이벤트 중 하나 발생
-	int event_type = 3; // 네 가지 랜덤 이벤트 중 하나 발생
+	event_type = (EventType)(rand() % 4); // 네 가지 랜덤 이벤트 중 하나 발생
+	//event_type = STORM; // 네 가지 랜덤 이벤트 중 하나 발생
 	char event_message[1000];     // 랜덤 이벤트 메시지를 저장할 변수
 	int damage = (rand() % 40) + 10;
 
+	int enemy_random_index = rand() % enemySystem->count; // 무슨 적을 만났는지 랜덤으로 결정
+
 	switch (event_type) {
-	case 0:
+	case SIGNAL_DEVICE:
 		// 신호장치 이벤트
+		event_type = SIGNAL_DEVICE;
 		snprintf(event_message, sizeof(event_message), "신호장치를 발견하였습니다!");
 		add_message(event_message);
 		player->signal_device_count++;
 		break;
-	case 1:
+	case STORM:
 		// 폭풍 이벤트
+		event_type = STORM;
 		snprintf(event_message, sizeof(event_message), "폭풍이 발생했습니다! 체력이 %d 감소합니다.", damage);
 		add_message(event_message);
 		player->base.health -= damage;
 		break;
-	case 2:
+	case ITEM_FOUND:
 		// 아이템 이벤트
+		event_type = ITEM_FOUND;
 		snprintf(event_message, sizeof(event_message), "아이템을 발견하였습니다.");
 		add_message(event_message);
 		add_random_item_to_player(player);
 		break;
 	case 3:
 		// 전투 이벤트
+		event_type += enemy_random_index;
 		snprintf(event_message, sizeof(event_message), "적을 만났습니다! 전투 시작!");
 		add_message(event_message);
-		Enemy* enemy = create_enemy();
+		Enemy* enemy = &enemySystem->enemies[enemy_random_index];
 		battle(enemy);
 		break;
 	}
@@ -177,6 +244,7 @@ void random_event() {
 		Sleep(100); // 0.5초 대기
 	}
 	remove_messages();
+	event_type = None;
 }
 
 void move_room(char direction) {
@@ -241,6 +309,8 @@ int main() {
 	// 아이템 시스템 생성
 	itemSystem = create_item_system();
 	load_items_from_file(itemSystem, "items.txt");
+	enemySystem = create_enemy_system();
+	load_enemies_from_file(enemySystem, "Enemies.txt");
 
 	// 플레이어 생성
 	player = create_player();
@@ -251,9 +321,8 @@ int main() {
 
 	while (player->base.health > 0) { // 플레이어 체력이 0 이상인 동안 반복
 		// 콘솔 창의 크기가 변경되었을 때 콘솔 창 크기 업데이트
-		if (is_console_size_changed()) {
-			update_console_size();
-		}
+		update_console_size();
+
 		srand((unsigned int)time(NULL));  // 난수 생성기 초기화
 		is_able_input = true; // 입력 가능 상태로 변경
 		clear_back_buffer();
@@ -307,7 +376,7 @@ int main() {
 		}
 		if (is_map_open == false)
 		{
-		display_game(); // 화면 출력
+			display_game(); // 화면 출력
 		}
 		Sleep(frameDelay); // 30fps로 고정
 	}
