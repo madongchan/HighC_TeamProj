@@ -26,51 +26,6 @@ void display_game() {
 	render();
 }
 
-void display_map(Player* player) {
-	clear_back_buffer(); // 기존 화면 지우기
-
-	// 각 방을 3x5 크기로 정의
-	const int room_height = 4;
-	const int room_width = 12;
-
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++) {
-			int start_x = j * (room_width + 4); // 각 방의 시작 x 좌표 (통로 공간 추가)
-			int start_y = i * (room_height + 2); // 각 방의 시작 y 좌표 (통로 공간 추가)
-
-			// 방 경계선 그리기
-			draw_to_back_buffer(start_x, start_y, "------------");
-			for (int k = 1; k < room_height - 1; k++) {
-				char buffer[13]; // 배열 크기를 명확히 설정
-				strncpy(buffer, "|          |", sizeof(buffer) - 1);
-				buffer[sizeof(buffer) - 1] = '\0';
-				draw_to_back_buffer(start_x, start_y + k, buffer);
-			}
-			draw_to_back_buffer(start_x, start_y + room_height - 1, "------------");
-
-			// 플레이어 위치 표시
-			if (i == player->y && j == player->x) {
-				draw_to_back_buffer(start_x + room_width / 2, start_y + room_height / 2, "P");
-			}
-
-			// 방과 방 사이의 통로 그리기
-			if (j < 2) { // 오른쪽으로 통로 추가 (마지막 열 제외)
-				draw_to_back_buffer(start_x + room_width, start_y + room_height / 2, "####");
-			}
-			if (i < 2) { // 아래쪽으로 통로 추가 (마지막 행 제외)
-				for (int k = 0; k < 4; k++) {
-					draw_to_back_buffer(start_x + room_width / 2, start_y + room_height + k, "#");
-				}
-			}
-		}
-	}
-
-	display_status_area(player);
-	render();
-}
-
-
-
 
 void use_item(Enemy* enemy) {
 	add_message("아이템을 사용하시겠습니까? : (0 : 의료키트 사용, 1 : 체력캡슐 사용)");
