@@ -106,7 +106,7 @@ Player* create_player() {
         player->inventory[i].value = 0;   // 초기값으로 초기화
     }
     player->item_count = 0;
-    player->signal_device_count = 0;
+    player->signal_device_count = 4;
 
     return player;
 }

@@ -114,7 +114,7 @@ void display_game_art(EventType event_type) {
 // 하단 플레이어 상태 및 화면 정보 출력 함수
 void display_status_area(Player* player) {
     if (backBuffer == NULL) return; // 백 버퍼가 초기화되지 않았으면 종료
-    int status_start_row = SCREEN_HEIGHT - 6;
+    int status_start_row = SCREEN_HEIGHT - 4;
 
     // 플레이어 상태
     char status[100];

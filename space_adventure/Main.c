@@ -52,40 +52,56 @@ void use_item(Enemy* enemy) {
 		return;
 	}
 
+	char message[1000];
+
 	// 선택된 아이템 사용
 	Item* selected_item = &player->inventory[item_index];
 	switch (selected_item->index) {
 	case 0: // 의료키트
 		add_message("의료키트를 사용했습니다.");
 		player->base.health += selected_item->value;
+		// 의료키트를 사용해서 체력 회복량 출력
+		snprintf(message, sizeof(message), "의료키트를 사용해서 체력이 %d 회복되었습니다.", selected_item->value);
 		break;
 	case 1: // 체력캡슐
 		add_message("체력캡슐을 사용했습니다.");
 		player->base.health += selected_item->value;
+		// 체력캡슐을 사용해서 체력 회복량 출력
+		snprintf(message, sizeof(message), "체력캡슐을 사용해서 체력이 %d 회복되었습니다.", selected_item->value);
 		break;
 	case 3: // 플라즈마 포
 		add_message("플라즈마 포를 사용했습니다.");
 		enemy->base.health -= selected_item->value;
+		// 피해량 출력
+		snprintf(message, sizeof(message), "플라즈마 포로 %d 피해를 입혔습니다.", selected_item->value);
 		break;
 	case 5: // 에너지 실드
 		add_message("에너지 실드를 사용했습니다.");
 		player->base.defense += selected_item->value;
+		// 방어력 증가량 출력
+		snprintf(message, sizeof(message), "에너지 실드로 방어력이 %d 증가했습니다.", selected_item->value);
 		break;
 	case 6: // 빛나는 유물
 		add_message("빛나는 유물을 사용했습니다.");
 		int relic_effect = rand() % 3; // 랜덤 효과
 		switch (relic_effect) {
 		case 0:
-			add_message("공격력이 증가했습니다.");
-			player->base.attack += 10;
+			// 공격력 증가
+			snprintf(message, sizeof(message), "공격력이 %d 증가했습니다.", selected_item->value);
+			player->base.attack += selected_item->value;
+			add_message(message);
 			break;
 		case 1:
-			add_message("체력이 회복되었습니다.");
-			player->base.health += 10;
+			// 체력 회복
+			snprintf(message, sizeof(message), "체력이 %d 회복되었습니다.", selected_item->value);
+			player->base.health += selected_item->value;
+			add_message(message);
 			break;
 		case 2:
-			add_message("방어력이 증가했습니다.");
-			player->base.defense += 10;
+			// 방어력 증가
+			snprintf(message, sizeof(message), "방어력이 %d 증가했습니다.", selected_item->value);
+			player->base.defense += selected_item->value;
+			add_message(message);
 			break;
 		}
 		break;
@@ -100,7 +116,7 @@ void use_item(Enemy* enemy) {
 	}
 	player->item_count--;
 
-	add_message("아이템을 사용했습니다.");
+	add_message(message);
 	display_game(); // 화면 업데이트
 }
 
@@ -124,18 +140,20 @@ void battle(Enemy* enemy) {
 			add_message(message);
 		}
 
+		Sleep(1000); // 턴 간 대기 시간
+		// 적이 죽었을 경우
 		if (enemy->base.health <= 0) {
 			snprintf(message, sizeof(message), "적 '%s'를 물리쳤습니다!", enemy->name);
 			add_message(message);
 		}
-
+		Sleep(1000); // 턴 간 대기 시간
 		// 적의 턴
 		enemy_attack(&enemy->base, &player->base);
 		snprintf(message, sizeof(message), "적 '%s'가 플레이어를 공격했습니다.", enemy->name);
 		add_message(message);
 
 		if (player->base.health <= 0) {
-			add_message("플레이어가 사망했습니다! 게임 오버!");
+			add_message("플레이어가 사망했습니다!");
 		}
 
 		Sleep(1000); // 턴 간 대기 시간
