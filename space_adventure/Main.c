@@ -20,6 +20,7 @@ ItemSystem* itemSystem; // 아이템 시스템
 EnemySystem* enemySystem; // 적 시스템
 Player* player; // 자주 사용하는 플레이어 객체 전역 변수로 선언
 EventType event_type = None; // 이벤트 타입 전역 변수로 선언
+bool is_able_input = true; // 입력 가능 여부 전역 변수로 선언
 
 void display_game() {
 	display_game_area();
@@ -134,33 +135,35 @@ void battle(Enemy* enemy) {
 		}
 		else {
 			player_attack(&player->base, &enemy->base);
-			snprintf(message, sizeof(message), "플레이어가 '%s'를 공격했습니다.", enemy->name);
+            snprintf(message, sizeof(message), "플레이어가 '%s'를 %d 데미지로 공격", enemy->name, player->base.attack);
 			add_message(message);
-			snprintf(message, sizeof(message), "적 '%s' 체력: %d", enemy->name, enemy->base.health);
+			if (enemy->base.health > 0 ) {
+				snprintf(message, sizeof(message), "'%s'의 체력: %d", enemy->name, enemy->base.health);
+			}
 			add_message(message);
 		}
-
-		Sleep(1000); // 턴 간 대기 시간
 		// 적이 죽었을 경우
 		if (enemy->base.health <= 0) {
-			snprintf(message, sizeof(message), "적 '%s'를 물리쳤습니다!", enemy->name);
+			snprintf(message, sizeof(message), "'%s'를 물리쳤습니다!", enemy->name);
 			add_message(message);
+			free(enemy); // 적 메모리 해제
+			display_game(); // 화면 업데이트
+			break;
 		}
-		Sleep(1000); // 턴 간 대기 시간
+		display_game(); // 화면 업데이트
+		Sleep(2000); // 턴 간 대기 시간
 		// 적의 턴
 		enemy_attack(&enemy->base, &player->base);
-		snprintf(message, sizeof(message), "적 '%s'가 플레이어를 공격했습니다.", enemy->name);
+        snprintf(message, sizeof(message), "'%s'가 플레이어를 %d 데미지로 공격", enemy->name, enemy->base.attack);
 		add_message(message);
 
 		if (player->base.health <= 0) {
 			add_message("플레이어가 사망했습니다!");
+			break;
 		}
-
-		Sleep(1000); // 턴 간 대기 시간
+		display_game(); // 화면 업데이트
+		Sleep(2000); // 턴 간 대기 시간
 	}
-
-	// 전투 종료 후 적 메모리 해제
-	free(enemy);
 }
 
 void add_random_item_to_player() {
@@ -244,7 +247,10 @@ void random_event() {
 		event_type += enemy_random_index;
 		snprintf(event_message, sizeof(event_message), "적을 만났습니다! 전투 시작!");
 		add_message(event_message);
-		Enemy* enemy = &enemySystem->enemies[enemy_random_index];
+		Enemy* enemy = (Enemy*)malloc(sizeof(Enemy));
+		if (enemy != NULL) {
+			memcpy(enemy, &enemySystem->enemies[enemy_random_index], sizeof(Enemy));
+		}
 		battle(enemy);
 		break;
 	}
@@ -252,7 +258,7 @@ void random_event() {
 	display_game();
 
 	// 게임을 저장 중이라고 안내하고 다 끝나면 메시지들 삭제
-	//save_player_data(player, "player_save.dat");
+	save_player_data(player, "player_save.txt");
 	for (int i = 0; i <= 100; i += (rand() % 10)) {
 		char progress_message[100];
 		snprintf(progress_message, sizeof(progress_message), "진행 상황 저장 중... %d%%", i);
@@ -263,6 +269,7 @@ void random_event() {
 	}
 	remove_messages();
 	event_type = None;
+	is_able_input = true; // 입력 가능 상태로 변경
 }
 
 void move_room(char direction) {
@@ -290,14 +297,7 @@ void move_room(char direction) {
 
 
 void game_loop() {
-	player = create_player();
-	while (player->base.health > 0) {
-		srand((unsigned int)time(NULL));  // 난수 생성기 초기화
-		clear_back_buffer();
-		display_game(); // 화면 출력
-		Sleep(1000); // 1초 대기
-	}
-	free(player);
+	
 }
 
 
@@ -307,9 +307,7 @@ void handle_map_key(Player* player) {
 	if (is_map_open) {
 		// 맵이 열려있으면 맵을 닫고 원래 화면으로 돌아감
 		is_map_open = false;
-		display_game_area();
-		display_status_area(player);
-		render();
+		display_game();
 	}
 	else {
 		// 맵을 열음
@@ -335,38 +333,45 @@ int main() {
 
 	const int FPS = 33;
 	const int frameDelay = 1000 / FPS;  // 각 프레임당 대기 시간 (밀리초)
-	bool is_able_input = true;
 
 	while (player->base.health > 0) { // 플레이어 체력이 0 이상인 동안 반복
 		// 콘솔 창의 크기가 변경되었을 때 콘솔 창 크기 업데이트
 		update_console_size();
 
 		srand((unsigned int)time(NULL));  // 난수 생성기 초기화
-		is_able_input = true; // 입력 가능 상태로 변경
 		clear_back_buffer();
 
 
 		// 비블로킹 방식으로 입력 받기 (_kbhit() 사용)
 		if (_kbhit() && is_able_input) {  // 키보드 입력이 있는지 확인 && 입력 가능 상태인지 확인
-			is_able_input = false; // 입력 불가능 상태로 변경
 			char input = toupper(_getch());  // 키 입력을 대문자로 받기
+			is_able_input = false; // 입력 불가능 상태로 변경
 			switch (input)
 			{
 			case 'W':
-				move_room('N');
-				player->y--;
+				if (player->y > 0) {  // 위로 이동 가능한지 검사
+					player->y--;
+					move_room('N');
+				}
 				break;
 			case 'S':
-				move_room('S');
-				player->y++;
+				if (player->y < 2) {  // 아래로 이동 가능한지 검사
+					player->y++;
+					move_room('S');
+				}
 				break;
 			case 'D':
-				move_room('E');
-				player->x++;
+				if (player->x < 2) {  // 오른쪽으로 이동 가능한지 검사
+					player->x++;
+					move_room('E');
+				}
 				break;
 			case 'A':
-				move_room('W');
-				player->x--;
+				if (player->x > 0) {  // 왼쪽으로 이동 가능한지 검사
+					player->x--;
+					move_room('W');
+				}
+				break;
 				break;
 			case 'Q': // 'q'를 누르면 게임 종료
 				add_message("게임 종료!");
@@ -377,6 +382,9 @@ int main() {
 			case 'M':
 				handle_map_key(player);
 				break;
+			case 'R':
+				// 플레이어 데이터 초기화
+				init_player(player, "player_save.txt");
 			default:
 				break;
 			}

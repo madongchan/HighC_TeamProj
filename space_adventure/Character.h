@@ -1,12 +1,6 @@
 #pragma once
 
-typedef enum {
-    PLAYER,
-    ENEMY
-} CharacterType;
-
 typedef struct {
-    CharacterType type;
     int health;
     int attack;
     int defense;

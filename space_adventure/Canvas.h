@@ -118,8 +118,8 @@ void display_status_area(Player* player) {
 
     // 플레이어 상태
     char status[100];
-    snprintf(status, sizeof(status), "체력: %d | 공격력: %d | 방어력: %d",
-        player->base.health, player->base.attack, player->base.defense);
+    snprintf(status, sizeof(status), "체력: %d | 공격력: %d | 방어력: %d \ 신호장치 갯 수: %d",
+        player->base.health, player->base.attack, player->base.defense, player->signal_device_count);
     draw_to_back_buffer(0, status_start_row, "===== 플레이어 상태 =====");
     draw_to_back_buffer(0, status_start_row + 1, status);
 

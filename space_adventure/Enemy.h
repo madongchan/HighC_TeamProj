@@ -56,7 +56,6 @@ Enemy* load_enemies_from_file(EnemySystem* enemy_system, const char* filename) {
 
         // 적 초기화
         Enemy* enemy = &enemy_system->enemies[enemy_system->count];
-        enemy->base.type = ENEMY;
         enemy->base.health = health;
         enemy->base.attack = attack;
         enemy->base.defense = defense;
@@ -85,7 +84,6 @@ Enemy* create_enemy() {
         fprintf(stderr, "Error: Memory allocation failed for Enemy\n");
         exit(EXIT_FAILURE);
     }
-    enemy->base.type = ENEMY;
     enemy->base.health = 100;
     enemy->base.attack = 15;
     enemy->base.defense = 5;
