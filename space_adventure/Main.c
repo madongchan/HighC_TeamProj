@@ -20,7 +20,6 @@ ItemSystem* itemSystem; // 아이템 시스템
 EnemySystem* enemySystem; // 적 시스템
 Player* player; // 자주 사용하는 플레이어 객체 전역 변수로 선언
 EventType event_type = None; // 이벤트 타입 전역 변수로 선언
-bool is_able_input = true; // 입력 가능 여부 전역 변수로 선언
 
 void display_game() {
 	display_game_area();
@@ -269,7 +268,6 @@ void random_event() {
 	}
 	remove_messages();
 	event_type = None;
-	is_able_input = true; // 입력 가능 상태로 변경
 }
 
 void move_room(char direction) {
@@ -343,9 +341,8 @@ int main() {
 
 
 		// 비블로킹 방식으로 입력 받기 (_kbhit() 사용)
-		if (_kbhit() && is_able_input) {  // 키보드 입력이 있는지 확인 && 입력 가능 상태인지 확인
+		if (_kbhit()) {  // 키보드 입력이 있는지 확인 && 입력 가능 상태인지 확인
 			char input = toupper(_getch());  // 키 입력을 대문자로 받기
-			is_able_input = false; // 입력 불가능 상태로 변경
 			switch (input)
 			{
 			case 'W':

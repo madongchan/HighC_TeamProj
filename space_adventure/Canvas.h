@@ -65,7 +65,7 @@ void display_game_area() {
     if (backBuffer == NULL) return; // 백 버퍼가 초기화되지 않았으면 종료
     clear_back_buffer();
     draw_to_back_buffer(0, 0, "===== 게임 로직 공간 =====");
-    draw_to_back_buffer(0, 1, "명령을 입력하세요 (N: 북쪽 이동, S: 남쪽 이동, E: 동쪽 이동, W: 서쪽 이동), 맵 열기/닫기: M, 게임 종료: Q");
+    draw_to_back_buffer(0, 1, "명령을 입력하세요 (W: 북쪽 이동, S: 남쪽 이동, D: 동쪽 이동, A: 서쪽 이동), 맵 열기/닫기: M, 게임 종료: Q, 게임 초기화: R");
 
     if (messageSystem == NULL) return; // 메시지 시스템이 초기화되지 않았으면 종료
     for (int i = 0; i < messageSystem->count; i++) {
