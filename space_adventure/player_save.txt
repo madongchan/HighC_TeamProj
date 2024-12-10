@@ -1,10 +1,10 @@
-Health: 85
+Health: 100
 Attack: 20
 Defense: 10
 X: 1
 Y: 1
 ItemCount: 0
-SignalDeviceCount: 1
+SignalDeviceCount: 0
 ItemIndex: -1, Name: , Type: -1, Value: -1
 ItemIndex: -1, Name: , Type: -1, Value: -1
 ItemIndex: -1, Name: , Type: -1, Value: -1
