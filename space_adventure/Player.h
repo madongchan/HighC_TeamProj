@@ -151,7 +151,7 @@ Player* load_player_data(const char* filename) {
 		fclose(file);
 		return NULL;
 	}
-
+	
 	// 인벤토리 초기화
 	for (int i = 0; i < player->item_count && i < MAX_ITEMS; i++) {
 		if (fscanf(file, "ItemIndex: %d, Name: %[^,], Type: %d, Value: %d\n",
@@ -169,8 +169,11 @@ Player* load_player_data(const char* filename) {
 
 	// 함수 포인터 설정
 	player->base.attack_func = player_attack;
-
 	fclose(file);
+	// 만약 플레이어 체력이 0 이하면 초기화 해줌
+	if (player->base.health <= 0) {
+		init_player(player, filename);
+	}
 	return player;
 }
 

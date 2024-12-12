@@ -48,7 +48,8 @@ void use_item(Enemy* enemy) {
 	int item_index = input - '0'; // 입력된 문자 '0'~'9'를 정수로 변환
 
 	if (item_index < 0 || item_index >= player->item_count) {
-		add_message("잘못된 인덱스입니다.");
+		add_message("아이템을 사용하지 않았습니다.");
+		display_game(); // 화면 업데이트
 		return;
 	}
 
@@ -373,8 +374,6 @@ int main() {
 			case 'Q': // 'q'를 누르면 게임 종료
 				add_message("게임 종료!");
 				display_game();
-				Sleep(1000);
-				exit(1);
 				break;
 			case 'M':
 				handle_map_key(player);
@@ -405,5 +404,6 @@ int main() {
 	}
 	free_back_buffer();
 	free_message_system();
+	Sleep(5000);
 	return 0;
 }
